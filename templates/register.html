@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Register</h1>
+<form method="POST" id="registerForm">
+    <div class="mb-3">
+        <label for="username" class="form-label">Username</label>
+        <input type="text" class="form-control" id="username" name="username" required>
+    </div>
+    <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="password" name="password" required>
+    </div>
+    <div class="mb-3">
+        <label for="confirm_password" class="form-label">Confirm Password</label>
+        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+    </div>
+    <div class="mb-3">
+        <label for="totp_code" class="form-label">TOTP Code</label>
+        <input type="text" class="form-control" id="totp_code" name="totp_code" required>
+    </div>
+    <div class="mb-3" id="qrCodeContainer" style="display: none;">
+        <label class="form-label">Scan this QR code with your authenticator app:</label>
+        <div style="width: 200px; height: 200px; overflow: hidden; border-radius: 10px;">
+            <img id="qrCode" src="" alt="TOTP QR Code" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+    </div>
+    <input type="hidden" id="totp_secret" name="totp_secret">
+    <button type="submit" class="btn btn-primary">Register</button>
+</form>
+<p class="mt-3">Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
+
+<script>
+document.getElementById('username').addEventListener('blur', function() {
+    var username = this.value;
+    if (username) {
+        fetch('/generate_qr', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'username=' + encodeURIComponent(username)
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('qrCode').src = 'data:image/png;base64,' + data.qr_code;
+            document.getElementById('qrCodeContainer').style.display = 'block';
+            document.getElementById('totp_secret').value = data.totp_secret;
+        });
+    }
+});
+</script>
+{% endblock %}

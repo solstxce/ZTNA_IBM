@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Admin Panel</h1>
+
+<h2>User Management</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Current Role</th>
+            <th>New Role</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr>
+            <td>{{ user['username'] }}</td>
+            <td>{{ user['role'] }}</td>
+            <td>
+                <form action="{{ url_for('change_role') }}" method="POST" class="row g-3">
+                    <input type="hidden" name="user_id" value="{{ user['id'] }}">
+                    <div class="col-auto">
+                        <select name="new_role" class="form-select">
+                            {% for role in roles %}
+                            <option value="{{ role['name'] }}" {% if role['name'] == user['role'] %}selected{% endif %}>
+                                {{ role['name'] }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-primary" onclick="confirmChange(this.form)">Change Role</button>
+                    </div>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2>Create New Role</h2>
+<form action="{{ url_for('create_role') }}" method="POST" class="row g-3">
+    <div class="col-auto">
+        <input type="text" name="new_role" class="form-control" placeholder="New Role Name" required>
+    </div>
+    <div class="col-auto">
+        <button type="button" class="btn btn-success" onclick="confirmChange(this.form)">Create Role</button>
+    </div>
+</form>
+
+<script>
+function confirmChange(form) {
+    let adminPassword = prompt("Please enter your admin password to confirm this change:");
+    if (adminPassword) {
+        let passwordInput = document.createElement('input');
+        passwordInput.type = 'hidden';
+        passwordInput.name = 'admin_password';
+        passwordInput.value = adminPassword;
+        form.appendChild(passwordInput);
+        form.submit();
+    }
+}
+</script>
+{% endblock %}
