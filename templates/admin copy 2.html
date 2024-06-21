@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Admin Panel</h1>
+
+<form action="{{ url_for('admin') }}" method="GET" class="mb-4">
+    <div class="input-group">
+        <input type="text" class="form-control" placeholder="Search by username" name="search" value="{{ search_query }}">
+        <button class="btn btn-outline-secondary" type="submit">Search</button>
+    </div>
+</form>
+
+<h2>User Management</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Current Role</th>
+            <th>New Role</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr>
+            <td>{{ user['username'] }}</td>
+            <td>{{ user['role'] }}</td>
+            <td>
+                <form action="{{ url_for('change_role') }}" method="POST" class="row g-3">
+                    <input type="hidden" name="user_id" value="{{ user['id'] }}">
+                    <div class="col-auto">
+                        <select name="new_role" class="form-select">
+                            {% for role in roles %}
+                            <option value="{{ role['name'] }}" {% if role['name'] == user['role'] %}selected{% endif %}>
+                                {{ role['name'] }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-primary" onclick="confirmChange(this.form)">Change Role</button>
+                    </div>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2>Create New Role</h2>
+<form action="{{ url_for('create_role') }}" method="POST" class="row g-3">
+    <div class="col-auto">
+        <input type="text" name="new_role" class="form-control" placeholder="New Role Name" required>
+    </div>
+    <div class="col-auto">
+        <button type="button" class="btn btn-success" onclick="confirmChange(this.form)">Create Role</button>
+    </div>
+</form>
+
+<script>
+function confirmChange(form) {
+    let adminPassword = prompt("Please enter your admin password to confirm this change:");
+    if (adminPassword) {
+        let passwordInput = document.createElement('input');
+        passwordInput.type = 'hidden';
+        passwordInput.name = 'admin_password';
+        passwordInput.value = adminPassword;
+        form.appendChild(passwordInput);
+        form.submit();
+    }
+}
+</script>
+<!-- Add this to your base template or dashboard template -->
+<!-- <script>
+    let inactivityTimer;
+    const inactivityTime = 1 * 60 * 1000; // 2 minutes in milliseconds
+    
+    function resetInactivityTimer() {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(logout, inactivityTime);
+        
+        // Update last activity on the server
+        fetch('/update_activity', {method: 'POST'});
+    }
+    
+    function logout() {
+        window.location.href = '/logout';
+    }
+    
+    function checkSession() {
+        fetch('/check_session')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.valid) {
+                    logout();
+                }
+            });
+    }
+    
+    document.addEventListener('mousemove', resetInactivityTimer);
+    document.addEventListener('keypress', resetInactivityTimer);
+    
+    // Initial setup
+    resetInactivityTimer();
+    
+    // Periodically check session validity
+    setInterval(checkSession, 30000); // Check every 30 seconds
+</script> -->
+<script>
+    let inactivityTimer;
+    let lastActivityTime = Date.now();
+    const inactivityTime = 1 * 60 * 1000; // 2 minutes in milliseconds
+    const updateInterval = 30 * 1000; // 30 seconds in milliseconds
+    
+    function resetInactivityTimer() {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(checkInactivity, inactivityTime);
+        lastActivityTime = Date.now();
+    }
+    
+    function checkInactivity() {
+        if (Date.now() - lastActivityTime >= inactivityTime) {
+            logout();
+        } else {
+            inactivityTimer = setTimeout(checkInactivity, inactivityTime - (Date.now() - lastActivityTime));
+        }
+    }
+    
+    function logout() {
+        window.location.href = '/logout';
+    }
+    
+    function updateServerActivity() {
+        fetch('/update_activity', { method: 'POST' });
+    }
+    
+    function checkSession() {
+        fetch('/check_session')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.valid) {
+                    logout();
+                }
+            });
+    }
+    
+    document.addEventListener('mousemove', resetInactivityTimer);
+    document.addEventListener('keypress', resetInactivityTimer);
+    
+    // Initial setup
+    resetInactivityTimer();
+    
+    // Periodically update server and check session
+    setInterval(() => {
+        updateServerActivity();
+        checkSession();
+    }, updateInterval);
+    </script>
+{% endblock %}
