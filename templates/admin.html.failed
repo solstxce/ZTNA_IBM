@@ -50,8 +50,7 @@ Create new role form -->
 
  Purge duplicate roles button
 <h2 class="mt-4">Purge Duplicate Roles</h2>
-<button type="button" class="btn btn-warning" onclick="showConfirmModal('purge_roles')">Purge Duplicate Roles</button> -->
-<div id="alert-container"></div>
+<button type="button" class="btn btn-warning" onclick="showConfirmModal('purge_roles')">Purge Duplicate Roles</button> --> -->
 <div class="row mb-4">
     <!-- Create User Card -->
     <div class="col-md-6">
@@ -100,6 +99,45 @@ Create new role form -->
     </div>
 </div>
 
+<div class="row mb-4">
+    <!-- Purge Duplicate Roles Card -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h2>Purge Duplicate Roles</h2>
+            </div>
+            <div class="card-body">
+                <button type="button" class="btn btn-warning" onclick="showConfirmModal('purge_roles')">Purge Duplicate Roles</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change User Password Card -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h2>Change User Password</h2>
+            </div>
+            <div class="card-body">
+                <form id="change-password-form">
+                    <div class="mb-3">
+                        <select name="user_to_change" id="user-to-change" required class="form-control">
+                            <option value="">Select User</option>
+                            {% for user in users %}
+                            <option value="{{ user.username }}">{{ user.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <input type="password" name="new_password" id="new-password" required placeholder="New Password" class="form-control">
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="showConfirmModal('change_password')">Change Password</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row">
     <!-- Purge Duplicate Roles Card -->
     <div class="col-md-6">
@@ -113,172 +151,8 @@ Create new role form -->
         </div>
     </div>
 </div>
-<div class="card mt-4">
-    <div class="card-header">
-        <h2>Manage Users</h2>
-    </div>
-    <div class="card-body">
-        <input type="text" id="user-search" class="form-control mb-3" placeholder="Search users...">
-        <div id="user-list" class="list-group mb-3"></div>
-        <div id="user-details" class="d-none">
-            <h3 id="selected-username"></h3>
-            <p>Current Role: <span id="current-role"></span></p>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="action" id="change-role" value="role">
-                <label class="form-check-label" for="change-role">
-                    Change Role
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="action" id="change-password" value="password">
-                <label class="form-check-label" for="change-password">
-                    Change Password
-                </label>
-            </div>
-            <div id="role-selection" class="mt-3 d-none">
-                <select id="new-role" class="form-select">
-                    {% for role in roles %}
-                    <option value="{{ role.name }}">{{ role.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div id="password-change" class="mt-3 d-none">
-                <input type="password" id="new-password" class="form-control" placeholder="New Password">
-            </div>
-            <button id="confirm-change" class="btn btn-primary mt-3">Confirm Change</button>
-        </div>
-    </div>
-</div>
-
-
-<script>
-    // const users = {{ users | tojson | safe }};
-    // const users = JSON.parse('{{ users | tojson | safe }}');
-
-    // const userSearch = document.getElementById('user-search');
-    // const userList = document.getElementById('user-list');
-    const userSearch = document.getElementById('user-search');
-    const userList = document.getElementById('user-list');
-    const userDetails = document.getElementById('user-details');
-    const selectedUsername = document.getElementById('selected-username');
-    const currentRole = document.getElementById('current-role');
-    const changeRole = document.getElementById('change-role');
-    const changePassword = document.getElementById('change-password');
-    const roleSelection = document.getElementById('role-selection');
-    const passwordChange = document.getElementById('password-change');
-    const confirmChange = document.getElementById('confirm-change');
-
-    function filterUsers(query) {
-        return users.filter(user => user.username.toLowerCase().includes(query.toLowerCase()));
-    }
-
-    function displayUsers(filteredUsers) {
-        userList.innerHTML = '';
-        filteredUsers.forEach(user => {
-            const item = document.createElement('a');
-            item.href = '#';
-            item.classList.add('list-group-item', 'list-group-item-action');
-            item.textContent = user.username;
-            item.onclick = (e) => {
-                e.preventDefault();
-                showUserDetails(user);
-            };
-            userList.appendChild(item);
-        });
-    }
-
-    function showUserDetails(user) {
-        selectedUsername.textContent = user.username;
-        currentRole.textContent = user.role;
-        userDetails.classList.remove('d-none');
-        changeRole.checked = false;
-        changePassword.checked = false;
-        roleSelection.classList.add('d-none');
-        passwordChange.classList.add('d-none');
-    }
-
-    userSearch.addEventListener('input', (e) => {
-        const query = e.target.value;
-        const filteredUsers = filterUsers(query);
-        displayUsers(filteredUsers);
-    });
-
-    changeRole.addEventListener('change', () => {
-        roleSelection.classList.toggle('d-none', !changeRole.checked);
-        passwordChange.classList.add('d-none');
-    });
-
-    changePassword.addEventListener('change', () => {
-        passwordChange.classList.toggle('d-none', !changePassword.checked);
-        roleSelection.classList.add('d-none');
-    });
-
-    confirmChange.addEventListener('click', () => {
-        const action = document.querySelector('input[name="action"]:checked').value;
-        const username = selectedUsername.textContent;
-        let data = {
-            action: action === 'role' ? 'change_role' : 'change_password',
-            username: username
-        };
-
-        if (action === 'role') {
-            data.new_role = document.getElementById('new-role').value;
-        } else {
-            data.new_password = document.getElementById('new-password').value;
-        }
-
-        showConfirmModal(() => {
-            data.admin_password = document.getElementById('admin-password').value;
-            sendRequest(data);
-        });
-    });
-
-    // Initial display of all users
-    displayUsers(users);
-
-    function showConfirmModal(callback) {
-        const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
-        document.getElementById('confirm-action').onclick = () => {
-            modal.hide();
-            callback();
-        };
-        modal.show();
-    }
-
-    function sendRequest(data) {
-        fetch('{{ url_for("admin") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(data => {
-            const alertContainer = document.getElementById('alert-container');
-            alertContainer.innerHTML = '';
-            
-            const alertDiv = document.createElement('div');
-            alertDiv.classList.add('alert', data.status === 'success' ? 'alert-success' : 'alert-danger', 'alert-dismissible', 'fade', 'show');
-            alertDiv.setAttribute('role', 'alert');
-            
-            alertDiv.innerHTML = `
-                ${data.message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            `;
-            
-            alertContainer.appendChild(alertDiv);
-            
-            if (data.status === 'success') {
-                // Reload the page to reflect changes
-                location.reload();
-            }
-        });
-    }
-</script>
-
 <!-- Existing user management -->
-<!-- <h2 class="mt-4">Manage Users</h2>
+<h2 class="mt-4">Manage Users</h2>
 <form method="get" action="{{ url_for('admin') }}" class="mb-3">
     <div class="input-group">
         <input type="text" name="search" value="{{ search_query }}" placeholder="Search users..." class="form-control">
@@ -321,7 +195,7 @@ Create new role form -->
         </tr>
         {% endfor %}
     </tbody>
-</table> -->
+</table>
 
 <!-- Confirmation Modal -->
 <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
@@ -358,7 +232,7 @@ Create new role form -->
     </div>
 </div>
 
-
+<div id="alert-container"></div>
 
 <script>
     let confirmModal;
@@ -397,6 +271,36 @@ Create new role form -->
             admin_password: adminPassword
         });
     }
+    function changePassword(adminPassword) {
+    let userToChange = document.getElementById('user-to-change').value;
+    let newPassword = document.getElementById('new-password').value;
+    
+    // Send AJAX request to change password
+    fetch('/change_password', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            user_to_change: userToChange,
+            new_password: newPassword,
+            admin_password: adminPassword
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Password changed successfully');
+        } else {
+            alert('Failed to change password: ' + data.message);
+        }
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        alert('An error occurred while changing the password');
+    });
+}
+
 
     function purgeRoles() {
         const adminPassword = document.getElementById('admin-password').value;
@@ -477,5 +381,54 @@ Create new role form -->
         });
     }
 </script>
+<script>
+    function showConfirmModal(action) {
+    let modalTitle = '';
+    let modalBody = '';
+    let confirmAction = '';
 
+    switch(action) {
+        case 'create_user':
+            modalTitle = 'Confirm Create User';
+            modalBody = 'Are you sure you want to create this user?';
+            confirmAction = createUser;
+            break;
+        case 'create_role':
+            modalTitle = 'Confirm Create Role';
+            modalBody = 'Are you sure you want to create this role?';
+            confirmAction = createRole;
+            break;
+        case 'purge_roles':
+            modalTitle = 'Confirm Purge Duplicate Roles';
+            modalBody = 'Are you sure you want to purge duplicate roles?';
+            confirmAction = purgeRoles;
+            break;
+        case 'change_password':
+            modalTitle = 'Confirm Password Change';
+            modalBody = 'Are you sure you want to change this user\'s password?';
+            confirmAction = changePassword;
+            break;
+    }
+
+    // Set modal title and body
+    document.getElementById('confirmModalLabel').textContent = modalTitle;
+    document.getElementById('confirmModalBody').textContent = modalBody;
+
+    // Set up confirm button
+    document.getElementById('confirmModalButton').onclick = function() {
+        // Prompt for admin password
+        let adminPassword = document.getElementById('adminPassword').value;
+        // Call the appropriate function with the admin password
+        confirmAction(adminPassword);
+        // Close the modal
+        $('#confirmModal').modal('hide');
+    };
+
+    // Show the modal
+    $('#confirmModal').modal('show');
+}
+
+
+// Similarly, implement createUser, createRole, and purgeRoles functions
+</script>
 {% endblock %}

@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-
+<style>
+/* .list-group{ */
+/* } */
+</style>
 <h1>Admin Dashboard</h1>
 
 <div id="alert-container"></div>
@@ -70,11 +73,7 @@
             </div>
         </div>
     </div>
-    <!-- </div> -->
-
     <!-- Manage Users Card -->
-    <!-- <div class="row mb-4"> -->
-    <!-- Purge Duplicate Roles Card -->
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
@@ -87,7 +86,6 @@
                         <button class="btn btn-outline-success" type="button">Search 🔍</button>
                     </div>
                 </div>
-                <!-- <button class="btn btn-success" type="submit">Search</button> -->
                 <div style="max-height: 150px; margin-bottom: 10px; overflow:scroll; -webkit-overflow-scrolling: touch;" id="user-list" class="list-group mb-3"></div>
                 <div id="user-details" class="d-none">
                     <strong><h3 style="font-weight: bold;" id="selected-username"></h3></strong>
@@ -106,7 +104,7 @@
                         </label>
                     </div>
                     <div id="role-selection" class="mt-3 d-none">
-                        <select id="new-role-list" class="form-select">
+                        <select id="new-role" class="form-select">
                             <!-- Roles will be populated dynamically -->
                         </select>
                     </div>
@@ -182,19 +180,25 @@
             .then(data => {
                 roles = data.roles;
                 populateRoleSelects();
+            })
+            .catch(error => {
+                console.error('Error fetching roles:', error);
             });
     }
 
     function populateRoleSelects() {
         const newUserRoleSelect = document.getElementById('new-user-role');
-        const changeRoleSelect = document.getElementById('new-role-list');
+        const changeRoleSelect = document.getElementById('new-role');
 
         newUserRoleSelect.innerHTML = '';
         changeRoleSelect.innerHTML = '';
 
         roles.forEach(role => {
-            newUserRoleSelect.innerHTML += `<option value="${role.name}">${role.name}</option>`;
-            changeRoleSelect.innerHTML += `<option value="${role.name}">${role.name}</option>`;
+            const newUserOption = new Option(role.name, role.name);
+            const changeRoleOption = new Option(role.name, role.name);
+            
+            newUserRoleSelect.add(newUserOption);
+            changeRoleSelect.add(changeRoleOption);
         });
     }
 
@@ -353,8 +357,13 @@
     });
 
     document.getElementById('change-role').addEventListener('change', () => {
-        document.getElementById('role-selection').classList.toggle('d-none', !document.getElementById('change-role').checked);
+        const roleSelection = document.getElementById('role-selection');
+        roleSelection.classList.toggle('d-none', !document.getElementById('change-role').checked);
         document.getElementById('password-change').classList.add('d-none');
+        
+        if (document.getElementById('change-role').checked) {
+            populateRoleSelects();
+        }
     });
 
     document.getElementById('change-password').addEventListener('change', () => {
