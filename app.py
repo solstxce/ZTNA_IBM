@@ -620,6 +620,29 @@ def admin():
             ''')
             db.commit()
             return jsonify({'status': 'success', 'message': 'Duplicate roles purged successfully'})
+
+        elif action == 'create_role':
+            new_role = data.get('new_role')
+            admin_password = data.get('admin_password')
+            
+            # Verify admin password
+            admin_user = db.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+            if not check_password_hash(admin_user['password'], admin_password):
+                return jsonify({'status': 'error', 'message': 'Invalid admin password.'})
+
+            # Check if the role already exists
+            existing_role = db.execute('SELECT * FROM roles WHERE name = ?', (new_role,)).fetchone()
+            if existing_role:
+                return jsonify({'status': 'error', 'message': 'Role already exists.'})
+
+            try:
+                db.execute('INSERT INTO roles (name) VALUES (?)', (new_role,))
+                db.commit()
+                return jsonify({'status': 'success', 'message': 'New role created successfully'})
+            except sqlite3.Error as e:
+                db.rollback()
+                return jsonify({'status': 'error', 'message': f'An error occurred: {str(e)}'})
+
     if search_query:
         users = db.execute('SELECT id, username, role FROM users WHERE username LIKE ?', ('%' + search_query + '%',)).fetchall()
     else:
