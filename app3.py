@@ -9,7 +9,15 @@ import io
 import base64
 from datetime import datetime, timedelta, timezone
 from PIL import Image, ImageDraw
+import psutil
+from flask import jsonify
+from collections import deque
+import time
+max_length = 3
+timestamps = deque(maxlen=max_length)
+network_usage = deque(maxlen=max_length)
 
+last_update_time = 0
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Change this to a secure random key
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=2)
@@ -208,6 +216,51 @@ def logout():
 def dashboard():
     user_role = session.get('role')
     return render_template('dashboard.html', user_role=user_role)
+
+@app.route('/admin/system_stats')
+@login_required
+def system_stats():
+    global last_update_time
+    current_time = time.time()
+    
+    # Only update stats every 10 seconds
+    if current_time - last_update_time >= 10:
+        last_update_time = current_time
+        
+        timestamps.append(current_time)
+        
+        # CPU Usage
+        cpu = psutil.cpu_percent()
+        cpu_usage = {
+            "Used": cpu,
+            "Free": 100 - cpu
+        }
+        
+        # Memory Usage
+        memory = psutil.virtual_memory()
+        memory_usage = {
+            "Used": memory.percent,
+            "Free": 100 - memory.percent
+        }
+        
+        # Disk Usage
+        disk = psutil.disk_usage("/")
+        disk_usage = {
+            "Used": disk.percent,
+            "Free": 100 - disk.percent
+        }
+        
+        # Network Usage (in MB/s)
+        network = sum(psutil.net_io_counters()._asdict().values()) / (1024 * 1024)
+        network_usage.append(network)
+
+    return jsonify({
+        'timestamps': list(timestamps),
+        'cpu_usage': cpu_usage,
+        'memory_usage': memory_usage,
+        'disk_usage': disk_usage,
+        'network_usage': list(network_usage)
+    })
 
 @app.route('/admin', methods=['GET', 'POST'])
 @login_required

@@ -1,51 +1,46 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+    .stats-card {
+        height: 300px;
+    }
+</style>
+
 <h1>Dashboard</h1>
 <p>Welcome, {{ session['username'] }}!</p>
-<!-- <p>Your role is: {{ user_role }}</p> -->
 
 {% if user_role == 'admin' %}
-    <h1><strong>Admin Only Features</strong></h1>
+    <h2><strong>Admin Dashboard</strong></h2>
 
-    <!-- User Management -->
-    <!-- <h3>User Management</h3>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Username</th>
-                <th>Current Role</th>
-                <th>New Role</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for user in users %}
-            <tr>
-                <td>{{ user['username'] }}</td>
-                <td>{{ user['role'] }}</td>
-                <td>
-                    <form action="{{ url_for('dashboard') }}" method="POST" class="row g-3">
-                        <input type="hidden" name="action" value="change_role">
-                        <input type="hidden" name="user_id" value="{{ user['id'] }}">
-                        <div class="col-auto">
-                            <select name="new_role" class="form-select">
-                                {% for role in roles %}
-                                <option value="{{ role['name'] }}" {% if role['name'] == user['role'] %}selected{% endif %}>
-                                    {{ role['name'] }}
-                                </option>
-                                {% endfor %}
-                            </select>
+    <!-- System Stats Section -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3>System Stats</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div id="cpu-usage" class="stats-card"></div>
                         </div>
-                        <div class="col-auto">
-                            <button type="submit" class="btn btn-primary">Change Role</button>
+                        <div class="col-md-6">
+                            <div id="memory-usage" class="stats-card"></div>
                         </div>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table> -->
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div id="disk-usage" class="stats-card"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div id="network-usage" class="stats-card"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- API Endpoint Management -->
     <h3>API Endpoint Management</h3>
@@ -109,21 +104,36 @@
         </tbody>
     </table>
 {% endif %}
-<!-- Add this to your base template or dashboard template -->
-<!-- <script>
+
+<!-- Include Plotly.js -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<script>
     let inactivityTimer;
+    let lastActivityTime = Date.now();
     const inactivityTime = 1 * 60 * 1000; // 2 minutes in milliseconds
+    const updateInterval = 30 * 1000; // 30 seconds in milliseconds
     
     function resetInactivityTimer() {
         clearTimeout(inactivityTimer);
-        inactivityTimer = setTimeout(logout, inactivityTime);
-        
-        // Update last activity on the server
-        fetch('/update_activity', {method: 'POST'});
+        inactivityTimer = setTimeout(checkInactivity, inactivityTime);
+        lastActivityTime = Date.now();
+    }
+    
+    function checkInactivity() {
+        if (Date.now() - lastActivityTime >= inactivityTime) {
+            logout();
+        } else {
+            inactivityTimer = setTimeout(checkInactivity, inactivityTime - (Date.now() - lastActivityTime));
+        }
     }
     
     function logout() {
         window.location.href = '/logout';
+    }
+    
+    function updateServerActivity() {
+        fetch('/update_activity', { method: 'POST' });
     }
     
     function checkSession() {
@@ -142,58 +152,95 @@
     // Initial setup
     resetInactivityTimer();
     
-    // Periodically check session validity
-    setInterval(checkSession, 30000); // Check every 30 seconds
-    </script> -->
-    <script>
-        let inactivityTimer;
-        let lastActivityTime = Date.now();
-        const inactivityTime = 1 * 60 * 1000; // 2 minutes in milliseconds
-        const updateInterval = 30 * 1000; // 30 seconds in milliseconds
-        
-        function resetInactivityTimer() {
-            clearTimeout(inactivityTimer);
-            inactivityTimer = setTimeout(checkInactivity, inactivityTime);
-            lastActivityTime = Date.now();
-        }
-        
-        function checkInactivity() {
-            if (Date.now() - lastActivityTime >= inactivityTime) {
-                logout();
-            } else {
-                inactivityTimer = setTimeout(checkInactivity, inactivityTime - (Date.now() - lastActivityTime));
-            }
-        }
-        
-        function logout() {
-            window.location.href = '/logout';
-        }
-        
-        function updateServerActivity() {
-            fetch('/update_activity', { method: 'POST' });
-        }
-        
-        function checkSession() {
-            fetch('/check_session')
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.valid) {
-                        logout();
-                    }
-                });
-        }
-        
-        document.addEventListener('mousemove', resetInactivityTimer);
-        document.addEventListener('keypress', resetInactivityTimer);
-        
-        // Initial setup
-        resetInactivityTimer();
-        
-        // Periodically update server and check session
-        setInterval(() => {
-            updateServerActivity();
-            checkSession();
-        }, updateInterval);
+    // Periodically update server and check session
+    setInterval(() => {
+        updateServerActivity();
+        checkSession();
+    }, updateInterval);
+
+    // System stats functions
+    let cpuChart, memoryChart, diskChart, networkChart;
+
+function fetchSystemStats() {
+    fetch('/admin/system_stats')
+        .then(response => response.json())
+        .then(data => {
+            updateSystemStats(data);
+        })
+        .catch(error => {
+            console.error('Error fetching system stats:', error);
+        });
+}
+
+function updateSystemStats(data) {
+    // Convert Unix timestamps to readable format
+    const formattedTimestamps = data.timestamps.map(timestamp => 
+        new Date(timestamp * 1000).toLocaleTimeString()
+    );
+
+    // CPU Usage
+    var cpuTrace = {
+        labels: Object.keys(data.cpu_usage),
+        values: Object.values(data.cpu_usage),
+        type: 'pie',
+        name: 'CPU Usage'
+    };
+    var cpuLayout = {
+        title: 'CPU Usage'
+    };
+    Plotly.newPlot('cpu-usage', [cpuTrace], cpuLayout);
+
+    // Memory Usage
+    var memoryTrace = {
+        labels: Object.keys(data.memory_usage),
+        values: Object.values(data.memory_usage),
+        type: 'pie',
+        name: 'Memory Usage'
+    };
+    var memoryLayout = {
+        title: 'Memory Usage'
+    };
+    Plotly.newPlot('memory-usage', [memoryTrace], memoryLayout);
+
+    // Disk Usage
+    var diskTrace = {
+        labels: Object.keys(data.disk_usage),
+        values: Object.values(data.disk_usage),
+        type: 'pie',
+        name: 'Disk Usage'
+    };
+    var diskLayout = {
+        title: 'Disk Usage'
+    };
+    Plotly.newPlot('disk-usage', [diskTrace], diskLayout);
+
+    // Network Usage
+    if (!networkChart) {
+        var networkTrace = {
+            x: formattedTimestamps,
+            y: data.network_usage,
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: 'Network Usage'
+        };
+        var networkLayout = {
+            title: 'Network Usage',
+            yaxis: {title: 'MB'}
+        };
+        networkChart = Plotly.newPlot('network-usage', [networkTrace], networkLayout);
+    } else {
+        Plotly.update('network-usage', {
+            x: [formattedTimestamps],
+            y: [data.network_usage]
+        });
+    }
+}
+
+// Update system stats every 10 seconds
+setInterval(fetchSystemStats, 10000);
+
+// Initial fetch of system stats
+fetchSystemStats();
 </script>
 
 {% endblock %}

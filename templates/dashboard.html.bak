@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Dashboard</h1>
+<p>Welcome, {{ session['username'] }}!</p>
+<!-- <p>Your role is: {{ user_role }}</p> -->
+
+{% if user_role == 'admin' %}
+    <h1><strong>Admin Only Features</strong></h1>
+
+    <!-- User Management -->
+    <!-- <h3>User Management</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Current Role</th>
+                <th>New Role</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user['username'] }}</td>
+                <td>{{ user['role'] }}</td>
+                <td>
+                    <form action="{{ url_for('dashboard') }}" method="POST" class="row g-3">
+                        <input type="hidden" name="action" value="change_role">
+                        <input type="hidden" name="user_id" value="{{ user['id'] }}">
+                        <div class="col-auto">
+                            <select name="new_role" class="form-select">
+                                {% for role in roles %}
+                                <option value="{{ role['name'] }}" {% if role['name'] == user['role'] %}selected{% endif %}>
+                                    {{ role['name'] }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-primary">Change Role</button>
+                        </div>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table> -->
+
+    <!-- API Endpoint Management -->
+    <h3>API Endpoint Management</h3>
+
+    <!-- Create New API Endpoint -->
+    <h5>Create New API Endpoint</h5>
+    <form action="{{ url_for('dashboard') }}" method="POST" class="mb-4">
+        <input type="hidden" name="action" value="create_endpoint">
+        <div class="mb-3">
+            <label for="name" class="form-label">Name</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+        <div class="mb-3">
+            <label for="endpoint" class="form-label">Endpoint URL</label>
+            <input type="text" class="form-control" id="endpoint" name="endpoint" required>
+        </div>
+        <div class="mb-3">
+            <label for="method" class="form-label">HTTP Method</label>
+            <select class="form-select" id="method" name="method" required>
+                <option value="GET">GET</option>
+                <option value="POST">POST</option>
+                <option value="PUT">PUT</option>
+                <option value="DELETE">DELETE</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Create API Endpoint</button>
+    </form>
+
+    <!-- Existing API Endpoints -->
+    <h4>Existing API Endpoints</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Endpoint URL</th>
+                <th>Method</th>
+                <th>Description</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for endpoint in api_endpoints %}
+            <tr>
+                <td>{{ endpoint['name'] }}</td>
+                <td>{{ endpoint['endpoint'] }}</td>
+                <td>{{ endpoint['method'] }}</td>
+                <td>{{ endpoint['description'] }}</td>
+                <td>
+                    <form action="{{ url_for('dashboard') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this API endpoint?');">
+                        <input type="hidden" name="action" value="delete_endpoint">
+                        <input type="hidden" name="endpoint_id" value="{{ endpoint['id'] }}">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+<!-- Add this to your base template or dashboard template -->
+<!-- <script>
+    let inactivityTimer;
+    const inactivityTime = 1 * 60 * 1000; // 2 minutes in milliseconds
+    
+    function resetInactivityTimer() {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(logout, inactivityTime);
+        
+        // Update last activity on the server
+        fetch('/update_activity', {method: 'POST'});
+    }
+    
+    function logout() {
+        window.location.href = '/logout';
+    }
+    
+    function checkSession() {
+        fetch('/check_session')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.valid) {
+                    logout();
+                }
+            });
+    }
+    
+    document.addEventListener('mousemove', resetInactivityTimer);
+    document.addEventListener('keypress', resetInactivityTimer);
+    
+    // Initial setup
+    resetInactivityTimer();
+    
+    // Periodically check session validity
+    setInterval(checkSession, 30000); // Check every 30 seconds
+    </script> -->
+    <script>
+        let inactivityTimer;
+        let lastActivityTime = Date.now();
+        const inactivityTime = 1 * 60 * 1000; // 2 minutes in milliseconds
+        const updateInterval = 30 * 1000; // 30 seconds in milliseconds
+        
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(checkInactivity, inactivityTime);
+            lastActivityTime = Date.now();
+        }
+        
+        function checkInactivity() {
+            if (Date.now() - lastActivityTime >= inactivityTime) {
+                logout();
+            } else {
+                inactivityTimer = setTimeout(checkInactivity, inactivityTime - (Date.now() - lastActivityTime));
+            }
+        }
+        
+        function logout() {
+            window.location.href = '/logout';
+        }
+        
+        function updateServerActivity() {
+            fetch('/update_activity', { method: 'POST' });
+        }
+        
+        function checkSession() {
+            fetch('/check_session')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.valid) {
+                        logout();
+                    }
+                });
+        }
+        
+        document.addEventListener('mousemove', resetInactivityTimer);
+        document.addEventListener('keypress', resetInactivityTimer);
+        
+        // Initial setup
+        resetInactivityTimer();
+        
+        // Periodically update server and check session
+        setInterval(() => {
+            updateServerActivity();
+            checkSession();
+        }, updateInterval);
+</script>
+
+{% endblock %}
