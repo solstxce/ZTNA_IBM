@@ -568,8 +568,14 @@ def admin():
     search_query = request.args.get('search', '')
 
     if request.method == 'POST':
-        data = request.get_json()
-        if data and data.get('action') == 'create_user':
+        if request.is_json:
+            data = request.get_json()
+            action = data.get('action')
+        else:
+            data = request.form
+            action = data.get('action')
+
+        if action == 'create_user':
             username = data.get('username')
             password = data.get('password')
             role = data.get('role')
@@ -595,9 +601,25 @@ def admin():
             except sqlite3.IntegrityError:
                 return jsonify({'status': 'error', 'message': 'An error occurred while creating the user.'})
 
-        # ... (handle other POST actions like purge_roles and create_role)
+        elif action == 'purge_roles':
+            admin_password = data.get('admin_password')
+            
+            # Verify admin password
+            admin_user = db.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+            if not check_password_hash(admin_user['password'], admin_password):
+                return jsonify({'status': 'error', 'message': 'Invalid admin password.'})
 
-    # Handle GET request
+            # Purge duplicate roles
+            db.execute('''
+                DELETE FROM roles
+                WHERE id NOT IN (
+                    SELECT MIN(id)
+                    FROM roles
+                    GROUP BY name
+                )
+            ''')
+            db.commit()
+            return jsonify({'status': 'success', 'message': 'Duplicate roles purged successfully'})
     if search_query:
         users = db.execute('SELECT id, username, role FROM users WHERE username LIKE ?', ('%' + search_query + '%',)).fetchall()
     else:
@@ -605,6 +627,66 @@ def admin():
     
     roles = db.execute('SELECT name FROM roles').fetchall()
     return render_template('admin.html', users=users, roles=roles, search_query=search_query)
+# def admin():
+#     db = get_db()
+#     search_query = request.args.get('search', '')
+
+#     if request.method == 'POST':
+#         data = request.get_json()
+#         if data and data.get('action') == 'create_user':
+#             username = data.get('username')
+#             password = data.get('password')
+#             role = data.get('role')
+#             admin_password = data.get('admin_password')
+
+#             # Verify admin password
+#             admin_user = db.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+#             if not check_password_hash(admin_user['password'], admin_password):
+#                 return jsonify({'status': 'error', 'message': 'Invalid admin password.'})
+
+#             # Check if username already exists
+#             existing_user = db.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+#             if existing_user:
+#                 return jsonify({'status': 'error', 'message': 'Username already exists. Please choose a different username.'})
+            
+#             totp_secret = pyotp.random_base32()
+#             hashed_password = generate_password_hash(password)
+#             try:
+#                 db.execute('INSERT INTO users (username, password, role, totp_secret) VALUES (?, ?, ?, ?)',
+#                            (username, hashed_password, role, totp_secret))
+#                 db.commit()
+#                 return jsonify({'status': 'success', 'message': 'New user created successfully'})
+#             except sqlite3.IntegrityError:
+#                 return jsonify({'status': 'error', 'message': 'An error occurred while creating the user.'})
+
+#         elif action == 'purge_roles':
+#             admin_password = data.get('admin_password')
+            
+#             # Verify admin password
+#             admin_user = db.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+#             if not check_password_hash(admin_user['password'], admin_password):
+#                 return jsonify({'status': 'error', 'message': 'Invalid admin password.'})
+
+#             # Purge duplicate roles
+#             db.execute('''
+#                 DELETE FROM roles
+#                 WHERE id NOT IN (
+#                     SELECT MIN(id)
+#                     FROM roles
+#                     GROUP BY name
+#                 )
+#             ''')
+#             db.commit()
+#             return jsonify({'status': 'success', 'message': 'Duplicate roles purged successfully'})
+
+#     # Handle GET request
+#     if search_query:
+#         users = db.execute('SELECT id, username, role FROM users WHERE username LIKE ?', ('%' + search_query + '%',)).fetchall()
+#     else:
+#         users = db.execute('SELECT id, username, role FROM users').fetchall()
+    
+#     roles = db.execute('SELECT name FROM roles').fetchall()
+#     return render_template('admin.html', users=users, roles=roles, search_query=search_query)
 
 @app.route('/admin/change_role', methods=['POST'])
 @login_required
