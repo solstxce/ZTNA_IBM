@@ -1,5 +1,6 @@
 &nbsp;
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=60&pause=800&center=true&vCenter=true&random=false&width=535&height=60&lines=Blazor+ZTI+🔥)](https://git.io/typing-svg)
+<div style="margin-left: 30px;">[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=60&pause=800&center=true&vCenter=true&random=false&width=535&height=60&lines=Blazor+ZTI+🔥)](https://git.io/typing-svg)
+<div>
 
 <div align="center">
       <h1> <img src="static/images/logo.png" width="80px"><br/>ZTNA_KARE</h1>
