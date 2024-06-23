@@ -1,1 +1,1 @@
-[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=50&pause=1000&random=false&width=435&lines=Zero+Trust+Network+Architecture+Implementation)](https://git.io/typing-svg)
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=60&pause=1000&center=true&vCenter=true&random=false&width=535&height=60&lines=Zero+Trust+Network+Architecture+Implementation)](https://git.io/typing-svg)
