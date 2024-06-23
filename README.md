@@ -64,5 +64,4 @@ This project is designed to serve as a foundation for applications requiring hig
 pip install -r requirements.txt
 python app.py
 ```
-<!-- </> with 💛 by readMD (https://readmd.itsvg.in) -->
     
