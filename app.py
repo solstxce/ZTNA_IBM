@@ -48,6 +48,7 @@ app.config['JWT_SECRET_KEY'] = 'hTAKhXQBVBs7aSuT4Xn1cGzmvj4mJmpp'  # Change this
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=2)
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
 app.config['JWT_TOKEN_LOCATION'] = ['cookies']
+app.config["JWT_COOKIE_SECURE"] = False
 jwt = JWTManager(app)
 # MongoDB setup
 client = MongoClient('mongodb://localhost:27017/')
@@ -166,16 +167,6 @@ def role_required(role):
         return decorated_function
     return decorator
 
-# def role_required(role):
-#     def decorator(f):
-#         @wraps(f)
-#         def decorated_function(*args, **kwargs):
-#             if 'role' not in session or session['role'] != role:
-#                 # flash('You do not have permission to access this page.', 'error')
-#                 return redirect(url_for('error403'))
-#             return f(*args, **kwargs)
-#         return decorated_function
-#     return decorator
 
 # Routes
 @app.route('/')
@@ -382,8 +373,8 @@ def login():
                 refresh_token = create_refresh_token(identity=str(user['_id']))
                 
                 resp = make_response(redirect(url_for('dashboard')))
-                resp.set_cookie('access_token_cookie', access_token, httponly=True, secure=True, samesite='Strict')
-                resp.set_cookie('refresh_token_cookie', refresh_token, httponly=True, secure=True, samesite='Strict')
+                resp.set_cookie('access_token_cookie', access_token, samesite='Lax')
+                resp.set_cookie('refresh_token_cookie', refresh_token, samesite='Lax' )
                 
                 flash('Login successful', 'success')
                 return resp
@@ -404,17 +395,17 @@ def api_login():
     user = db.users.find_one({'username': username})
     if not user or not check_password_hash(user['password'], password):
         return jsonify({"msg": "Invalid username or password"}), 401
-
+    print("got till here")
     totp = pyotp.TOTP(user['totp_secret'])
     if not totp.verify(totp_code):
         return jsonify({"msg": "Invalid TOTP code"}), 401
-
+    print("got till here2")
     access_token = create_access_token(identity=str(user['_id']))
     refresh_token = create_refresh_token(identity=str(user['_id']))
-
+    print("got till here3")
     resp = jsonify({"msg": "Login successful"})
-    resp.set_cookie('access_token_cookie', access_token, httponly=True, secure=True, samesite='Strict')
-    resp.set_cookie('refresh_token_cookie', refresh_token, httponly=True, secure=True, samesite='Strict')
+    resp.set_cookie('access_token_cookie', access_token, samesite='Lax')
+    resp.set_cookie('refresh_token_cookie', refresh_token, samesite='Lax')
     return resp, 200
 
 @app.route('/api/dashboard', methods=['GET'])
@@ -477,6 +468,8 @@ def logout():
 @jwt_required()
 def dashboard():
     current_user_id = get_jwt_identity()
+    refresh_token = request.cookies.get("refresh_token_cookie")
+    access_token = request.cookies.get("access_token_cookie")
     user = db.users.find_one({'_id': ObjectId(current_user_id)})
     
     if not user:
@@ -491,7 +484,7 @@ def dashboard():
         })
     else:
         # If it's a web request, render the dashboard template
-        return render_template('dashboard.html', username=user['username'], role=user['role'])
+        return render_template('dashboard.html', username=user['username'], role=user['role'],access_token=access_token,refresh_token=refresh_token)
 
 @app.route('/admin/system_stats')
 # @login_required
