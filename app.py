@@ -18,7 +18,23 @@ from flask import session, request, redirect, url_for
 from flask_jwt_extended import verify_jwt_in_request, exceptions
 from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity
 
-# Add these lines after app initialization
+import logging
+from logging.handlers import RotatingFileHandler
+import os
+
+def setup_logging(app):
+    if not os.path.exists('logs'):
+        os.mkdir('logs')
+    file_handler = RotatingFileHandler('logs/app.log', maxBytes=10240, backupCount=100)
+    file_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+    ))
+    file_handler.setLevel(logging.INFO)
+    app.logger.addHandler(file_handler)
+    app.logger.setLevel(logging.INFO)
+    app.logger.info('Application startup')
+
+
 
 max_length = 3
 timestamps = deque(maxlen=max_length)
@@ -36,7 +52,7 @@ jwt = JWTManager(app)
 # MongoDB setup
 client = MongoClient('mongodb://localhost:27017/')
 db = client['rbac_db']
-
+setup_logging(app)
 def get_db():
     return db
 
@@ -72,6 +88,50 @@ init_db()
 #             return redirect(url_for('login'))
 #         return f(*args, **kwargs)
 #     return decorated_function
+
+def log_action(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user_id = get_jwt_identity()
+        app.logger.info(f'User {user_id} performed action: {f.__name__}')
+        return f(*args, **kwargs)
+    return decorated_function
+
+def log_specific_action(action, details=None):
+    user_id = get_jwt_identity()
+    ip_address = request.remote_addr
+    user_agent = request.user_agent.string
+    log_entry = f'User {user_id} from IP {ip_address} using {user_agent} performed action: {action}'
+    if details:
+        log_entry += f' | Details: {details}'
+    app.logger.info(log_entry)
+
+def db_operation_logger(operation):
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            result = f(*args, **kwargs)
+            user_id = get_jwt_identity()
+            app.logger.info(f'User {user_id} performed DB operation: {operation} | Args: {args} | Kwargs: {kwargs}')
+            return result
+        return wrapped
+    return decorator
+
+def sensitive_operation_logger(operation):
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            user_id = get_jwt_identity()
+            app.logger.info(f'User {user_id} attempting sensitive operation: {operation}')
+            result = f(*args, **kwargs)
+            app.logger.info(f'User {user_id} completed sensitive operation: {operation}')
+            return result
+        return wrapped
+    return decorator
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    app.logger.error(f'Unhandled exception: {str(e)}', exc_info=True)
 
 def login_required(f):
     @wraps(f)
@@ -407,14 +467,34 @@ def logout():
         # For API requests, you might want to implement a token blacklist here
         return jsonify({"msg": "Successfully logged out"}), 200
 
+# @app.route('/dashboard')
+# @login_required
+# def dashboard():
+#     user_role = session.get('role')
+#     return render_template('dashboard.html', user_role=user_role)
+
 @app.route('/dashboard')
-@login_required
+@jwt_required()
 def dashboard():
-    user_role = session.get('role')
-    return render_template('dashboard.html', user_role=user_role)
+    current_user_id = get_jwt_identity()
+    user = db.users.find_one({'_id': ObjectId(current_user_id)})
+    
+    if not user:
+        return jsonify({"msg": "User not found"}), 404
+
+    if request.is_json:
+        # If it's an API request, return JSON
+        return jsonify({
+            "username": user['username'],
+            "role": user['role'],
+            "msg": "Dashboard data retrieved successfully"
+        })
+    else:
+        # If it's a web request, render the dashboard template
+        return render_template('dashboard.html', username=user['username'], role=user['role'])
 
 @app.route('/admin/system_stats')
-@login_required
+# @login_required
 @jwt_required()
 def system_stats():
     current_user_id = get_jwt_identity()
