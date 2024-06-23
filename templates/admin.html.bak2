@@ -58,22 +58,27 @@
 </div>
 
 <div class="row mb-4">
-    <!-- Manage Roles Card -->
+    <!-- Purge Duplicate Roles Card -->
+    <!-- Purge Duplicate Roles Card -->
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
                 <h2>Manage Roles</h2>
             </div>
             <div class="card-body">
-                <button type="button" class="btn btn-warning mb-3" onclick="showConfirmModal('purge_roles')">Purge Duplicate Roles</button>
+                <button type="button" class="btn btn-warning mb-3" onclick="showConfirmModal('purge_roles')">Purge
+                    Duplicate Roles</button>
                 <div id="role-list" class="list-group">
                     <!-- Roles will be populated dynamically -->
                 </div>
             </div>
         </div>
     </div>
+    <!-- </div> -->
 
     <!-- Manage Users Card -->
+    <!-- <div class="row mb-4"> -->
+    <!-- Purge Duplicate Roles Card -->
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
@@ -86,10 +91,15 @@
                         <button class="btn btn-outline-success" type="button">Search 🔍</button>
                     </div>
                 </div>
-                <div style="max-height: 150px; margin-bottom: 10px; overflow:scroll; -webkit-overflow-scrolling: touch;" id="user-list" class="list-group mb-3"></div>
+                <!-- <button class="btn btn-success" type="submit">Search</button> -->
+                <div style="max-height: 150px; margin-bottom: 10px; overflow:scroll; -webkit-overflow-scrolling: touch;"
+                    id="user-list" class="list-group mb-3"></div>
                 <div id="user-details" class="d-none">
-                    <strong><h3 style="font-weight: bold;" id="selected-username"></h3></strong>
-                    <p style="font-weight: bold;">Current Role: <span style="font-weight: normal;" id="current-role"></span></p>
+                    <strong>
+                        <h3 style="font-weight: bold;" id="selected-username"></h3>
+                    </strong>
+                    <p style="font-weight: bold;">Current Role: <span style="font-weight: normal;"
+                            id="current-role"></span></p>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="action" id="change-role" value="role">
                         <label class="form-check-label" for="change-role">
@@ -153,54 +163,93 @@
     </div>
 </div>
 
-<!-- Set Operation Passwords Modal -->
-<div class="modal fade" id="setPasswordsModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="setPasswordsModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="setPasswordsModalLabel">Set Operation Passwords</h5>
-            </div>
-            <div class="modal-body">
-                <p>Please set unique passwords for each operation. Each password must:</p>
-                <ul>
-                    <li>Be at least 12 characters long</li>
-                    <li>Include at least one uppercase letter</li>
-                    <li>Include at least one lowercase letter</li>
-                    <li>Include at least one number</li>
-                    <li>Include at least one special character (@$!%*?&)</li>
-                    <li>Be different from your admin password and other operation passwords</li>
-                </ul>
-                <form id="operation-passwords-form">
-                    <div class="mb-3">
-                        <label for="create-role-password" class="form-label">Create Role Password</label>
-                        <input type="password" class="form-control" id="create-role-password" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="manage-role-password" class="form-label">Manage Role Password</label>
-                        <input type="password" class="form-control" id="manage-role-password" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="create-user-password" class="form-label">Create User Password</label>
-                        <input type="password" class="form-control" id="create-user-password" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="manage-users-password" class="form-label">Manage Users Password</label>
-                        <input type="password" class="form-control" id="manage-users-password" required>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="setOperationPasswords()">Set Passwords</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
     let confirmModal;
     let currentAction;
     let users = [];
     let roles = [];
+    function fetchRoles() {
+        fetch('/admin/roles')
+            .then(response => response.json())
+            .then(data => {
+                roles = data.roles;
+                populateRoleSelects();
+                displayRoles();
+            });
+    }
+
+    function displayRoles() {
+    const roleList = document.getElementById('role-list');
+    roleList.innerHTML = '';
+    roles.forEach(role => {
+        const item = document.createElement('div');
+        item.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+        item.innerHTML = `
+            ${role.name}
+            <button class="btn btn-outline-danger btn-sm" onclick="showConfirmModal('delete_role', '${role.name}')">Delete</button>
+        `;
+        roleList.appendChild(item);
+    });
+}
+    function showConfirmModal(action, roleName = null) {
+        currentAction = action;
+        if (action === 'delete_role') {
+            document.getElementById('confirmModalLabel').textContent = `Confirm Delete Role: ${roleName}`;
+            document.getElementById('confirm-action').setAttribute('data-role', roleName);
+        } else {
+            document.getElementById('confirmModalLabel').textContent = 'Confirm Action';
+            document.getElementById('confirm-action').removeAttribute('data-role');
+        }
+        confirmModal.show();
+    }
+
+    document.getElementById('confirm-action').addEventListener('click', function () {
+        const adminPassword = document.getElementById('admin-password').value;
+        if (currentAction === 'delete_role') {
+            const roleName = this.getAttribute('data-role');
+            deleteRole(adminPassword, roleName);
+        } else if (currentAction === 'purge_roles') {
+            purgeRoles(adminPassword);
+        } else if (currentAction === 'create_role') {
+            createRole(adminPassword);
+        } else if (currentAction === 'change_role') {
+            changeRole(adminPassword);
+        } else if (currentAction === 'change_password') {
+            changePassword(adminPassword);
+        }
+    });
+
+    function deleteRole(adminPassword, roleName) {
+        sendRequest('/admin/delete_role', {
+            role_name: roleName,
+            admin_password: adminPassword
+        });
+    }
+
+    // Update the sendRequest function to handle the new deleteRole action
+    function sendRequest(url, data) {
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json())
+            .then(data => {
+                confirmModal.hide();
+                showAlert(data.status, data.message);
+                if (data.status === 'success') {
+                    if (currentAction === 'create_user') {
+                        document.getElementById('create-user-form').reset();
+                    } else if (currentAction === 'create_role') {
+                        document.getElementById('create-role-form').reset();
+                    }
+                    fetchUsers();
+                    fetchRoles();
+                }
+            });
+    }
 
     document.addEventListener('DOMContentLoaded', function () {
         confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
@@ -223,7 +272,6 @@
             .then(data => {
                 roles = data.roles;
                 populateRoleSelects();
-                displayRoles();
             });
     }
 
@@ -240,38 +288,14 @@
         });
     }
 
-    function displayRoles() {
-        const roleList = document.getElementById('role-list');
-        roleList.innerHTML = '';
-        roles.forEach(role => {
-            const item = document.createElement('div');
-            item.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
-            item.innerHTML = `
-                ${role.name}
-                <button class="btn btn-outline-danger btn-sm" onclick="showConfirmModal('delete_role', '${role.name}')">Delete</button>
-            `;
-            roleList.appendChild(item);
-        });
-    }
-
-    function showConfirmModal(action, roleName = null) {
+    function showConfirmModal(action) {
         currentAction = action;
-        if (action === 'delete_role') {
-            document.getElementById('confirmModalLabel').textContent = `Confirm Delete Role: ${roleName}`;
-            document.getElementById('confirm-action').setAttribute('data-role', roleName);
-        } else {
-            document.getElementById('confirmModalLabel').textContent = 'Confirm Action';
-            document.getElementById('confirm-action').removeAttribute('data-role');
-        }
         confirmModal.show();
     }
 
     document.getElementById('confirm-action').addEventListener('click', function () {
         const adminPassword = document.getElementById('admin-password').value;
-        if (currentAction === 'delete_role') {
-            const roleName = this.getAttribute('data-role');
-            deleteRole(adminPassword, roleName);
-        } else if (currentAction === 'create_user') {
+        if (currentAction === 'create_user') {
             createUser(adminPassword);
         } else if (currentAction === 'purge_roles') {
             purgeRoles(adminPassword);
@@ -316,7 +340,7 @@
 
     function changeRole(adminPassword) {
         const username = document.getElementById('selected-username').textContent;
-        const newRole = document.getElementById('new-role-list').value;
+        const newRole = document.getElementById('new-role').value;
         sendRequest('/admin/manage_role', {
             username: username,
             new_role: newRole,
@@ -330,13 +354,6 @@
         sendRequest('/admin/manage_password', {
             username: username,
             new_password: newPassword,
-            admin_password: adminPassword
-        });
-    }
-
-    function deleteRole(adminPassword, roleName) {
-        sendRequest('/admin/delete_role', {
-            role_name: roleName,
             admin_password: adminPassword
         });
     }
@@ -461,70 +478,6 @@
                 }
             });
     }
-
-//unique operation password
-function validatePasswords() {
-    const passwordFields = [
-        'create-role-password',
-        'manage-role-password',
-        'create-user-password',
-        'manage-users-password'
-    ];
-    const passwords = passwordFields.map(id => document.getElementById(id).value);
-    
-    // Check if all passwords are unique
-    if (new Set(passwords).size !== passwords.length) {
-        showAlert('error', 'All operation passwords must be unique');
-        return false;
-    }
-    
-    // Check if each password meets the requirements
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$/;
-    for (let i = 0; i < passwordFields.length; i++) {
-        if (!passwordRegex.test(passwords[i])) {
-            showAlert('error', `${passwordFields[i].replace('-', ' ').toUpperCase()} does not meet requirements`);
-            return false;
-        }
-    }
-    
-    return true;
-}
-
-function setOperationPasswords() {
-    if (!validatePasswords()) {
-        return;
-    }
-
-    const passwords = {
-        create_role: document.getElementById('create-role-password').value,
-        manage_role: document.getElementById('manage-role-password').value,
-        create_user: document.getElementById('create-user-password').value,
-        manage_users: document.getElementById('manage-users-password').value
-    };
-
-    fetch('/admin/set_operation_passwords', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(passwords)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            operationPasswords = {
-                create_role: true,
-                manage_role: true,
-                create_user: true,
-                manage_users: true
-            };
-            bootstrap.Modal.getInstance(document.getElementById('setPasswordsModal')).hide();
-            showAlert('success', 'Operation passwords set successfully');
-        } else {
-            showAlert('error', data.message || 'Failed to set operation passwords');
-        }
-    });
-}
 </script>
 
 {% endblock %}
