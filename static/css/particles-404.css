@@ -198,6 +198,15 @@ body {
     padding: 0 0 0 1.4em;
 }
 
+.code-heading {
+    font-family: "Share Tech Mono";
+    font-weight: 1600;
+    text-transform: uppercase;
+    letter-spacing: .7em;
+    font-size: 2rem;
+    padding: 0 0 0 1.4em;
+}
+
 .message-description {
     font-family: "Space Mono";
     line-height: 42px;

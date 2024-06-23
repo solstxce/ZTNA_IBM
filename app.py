@@ -19,7 +19,7 @@ timestamps = deque(maxlen=max_length)
 network_usage = deque(maxlen=max_length)
 
 last_update_time = 0
-app = Flask(__name__)
+app = Flask(__name__,static_folder="static")
 app.secret_key = 'your_secret_key'  # Change this to a secure random key
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=2)
 
@@ -82,6 +82,14 @@ def index():
 @app.route('/403')
 def error403():
     return render_template('403.html')
+
+@app.route('/404')
+def error404():
+    return render_template('404.html')
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return redirect(url_for('error404'))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
