@@ -14,15 +14,25 @@ from flask import jsonify
 from collections import deque
 import time
 import re
+from flask import session, request, redirect, url_for
+from flask_jwt_extended import verify_jwt_in_request, exceptions
+from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity
+
+# Add these lines after app initialization
+
 max_length = 3
 timestamps = deque(maxlen=max_length)
 network_usage = deque(maxlen=max_length)
 
 last_update_time = 0
 app = Flask(__name__,static_folder="static")
-app.secret_key = 'your_secret_key'  # Change this to a secure random key
+app.secret_key = '9nvFXEse8c9foNRA4V9Y4djCyv4snMvY'  # Change this to a secure random key
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=2)
-
+app.config['JWT_SECRET_KEY'] = 'hTAKhXQBVBs7aSuT4Xn1cGzmvj4mJmpp'  # Change this!
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=2)
+app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
+app.config['JWT_TOKEN_LOCATION'] = ['cookies']
+jwt = JWTManager(app)
 # MongoDB setup
 client = MongoClient('mongodb://localhost:27017/')
 db = client['rbac_db']
@@ -55,10 +65,23 @@ def init_db():
 init_db()
 
 # Helper functions
+# def login_required(f):
+#     @wraps(f)
+#     def decorated_function(*args, **kwargs):
+#         if 'user_id' not in session:
+#             return redirect(url_for('login'))
+#         return f(*args, **kwargs)
+#     return decorated_function
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
+        if request.is_json:
+            try:
+                verify_jwt_in_request()
+            except exceptions.JWTExtendedException:
+                return jsonify({"msg": "Missing or invalid token"}), 401
+        elif 'user_id' not in session:
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -66,13 +89,33 @@ def login_required(f):
 def role_required(role):
     def decorator(f):
         @wraps(f)
+        @login_required
         def decorated_function(*args, **kwargs):
-            if 'role' not in session or session['role'] != role:
-                # flash('You do not have permission to access this page.', 'error')
-                return redirect(url_for('error403'))
+            if request.is_json:
+                current_user_id = get_jwt_identity()
+                user = db.users.find_one({'_id': ObjectId(current_user_id)})
+            else:
+                user = db.users.find_one({'_id': ObjectId(session['user_id'])})
+            
+            if user['role'] != role:
+                if request.is_json:
+                    return jsonify({"msg": "Insufficient permissions"}), 403
+                else:
+                    return redirect(url_for('error403'))
             return f(*args, **kwargs)
         return decorated_function
     return decorator
+
+# def role_required(role):
+#     def decorator(f):
+#         @wraps(f)
+#         def decorated_function(*args, **kwargs):
+#             if 'role' not in session or session['role'] != role:
+#                 # flash('You do not have permission to access this page.', 'error')
+#                 return redirect(url_for('error403'))
+#             return f(*args, **kwargs)
+#         return decorated_function
+#     return decorator
 
 # Routes
 @app.route('/')
@@ -87,9 +130,17 @@ def error403():
 def error404():
     return render_template('404.html')
 
+@app.route('/401')
+def error401():
+    return render_template('401.html')
+
 @app.errorhandler(404)
 def page_not_found(e):
     return redirect(url_for('error404'))
+
+@app.errorhandler(401)
+def page_not_found(e):
+    return redirect(url_for('error401'))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -182,6 +233,61 @@ def generate_qr_for_user():
     else:
         return jsonify({'error': 'User not found'}), 404
 
+# @app.route('/login', methods=['GET', 'POST'])
+# def login():
+    # if request.method == 'POST':
+    #     username = request.form['username']
+    #     password = request.form['password']
+    #     totp_code = request.form['totp_code']
+    #     user = db.users.find_one({'username': username})
+    #     if user and check_password_hash(user['password'], password):
+    #         totp = pyotp.TOTP(user['totp_secret'])
+    #         if totp.verify(totp_code):
+    #             session['user_id'] = str(user['_id'])
+    #             session['username'] = user['username']
+    #             session['role'] = user['role']
+    #             session.permanent = True
+    #             session['last_activity'] = datetime.now(timezone.utc).isoformat()
+    #             return redirect(url_for('dashboard'))
+    #         else:
+    #             flash('Invalid TOTP code', 'error')
+    #     else:
+    #         flash('Invalid username or password', 'error')
+    # return render_template('login.html')
+# @app.route('/login', methods=['GET', 'POST'])
+# def login():
+#     if request.method == 'GET':
+#         return render_template('login.html')
+    
+#     username = request.form.get('username') or request.json.get('username')
+#     password = request.form.get('password') or request.json.get('password')
+#     totp_code = request.form.get('totp_code') or request.json.get('totp_code')
+    
+#     user = db.users.find_one({'username': username})
+#     if user and check_password_hash(user['password'], password):
+#         totp = pyotp.TOTP(user['totp_secret'])
+#         if totp.verify(totp_code):
+#             if request.is_json:
+#                 access_token = create_access_token(identity=str(user['_id']))
+#                 refresh_token = create_refresh_token(identity=str(user['_id']))
+#                 return jsonify(access_token=access_token, refresh_token=refresh_token), 200
+#             else:
+#                 session['user_id'] = str(user['_id'])
+#                 session['username'] = user['username']
+#                 session['role'] = user['role']
+#                 session.permanent = True
+#                 session['last_activity'] = datetime.now(timezone.utc).isoformat()
+#                 return redirect(url_for('dashboard'))
+#         else:
+#             flash('Invalid TOTP code', 'error')
+#     else:
+#         flash('Invalid username or password', 'error')
+    
+#     if request.is_json:
+#         return jsonify({"msg": "Bad username, password, or TOTP code"}), 401
+#     return render_template('login.html')
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -192,37 +298,64 @@ def login():
         if user and check_password_hash(user['password'], password):
             totp = pyotp.TOTP(user['totp_secret'])
             if totp.verify(totp_code):
-                session['user_id'] = str(user['_id'])
-                session['username'] = user['username']
-                session['role'] = user['role']
-                session.permanent = True
-                session['last_activity'] = datetime.now(timezone.utc).isoformat()
-                return redirect(url_for('dashboard'))
+                access_token = create_access_token(identity=str(user['_id']))
+                refresh_token = create_refresh_token(identity=str(user['_id']))
+                return jsonify(access_token=access_token, refresh_token=refresh_token), 200
             else:
-                flash('Invalid TOTP code', 'error')
+                return jsonify({"msg": "Invalid TOTP code"}), 401
         else:
-            flash('Invalid username or password', 'error')
+            return jsonify({"msg": "Bad username or password"}), 401
     return render_template('login.html')
 
+@app.route('/api/dashboard', methods=['GET'])
+@jwt_required()
+def api_dashboard():
+    current_user_id = get_jwt_identity()
+    user = db.users.find_one({'_id': ObjectId(current_user_id)})
+    return jsonify({"role": user['role'], "username": user['username']})
+
+@app.route('/refresh', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh():
+    current_user = get_jwt_identity()
+    access_token = create_access_token(identity=current_user)
+    return jsonify(access_token=access_token), 200
+
 @app.route('/update_activity', methods=['POST'])
-@login_required
+@jwt_required()
 def update_activity():
+    current_user_id = get_jwt_identity()
     session['last_activity'] = datetime.now(timezone.utc).isoformat()
     return '', 204 
 
-@app.route('/check_session', methods=['GET'])
-def check_session():
-    if 'user_id' in session and 'last_activity' in session:
-        last_activity = datetime.fromisoformat(session['last_activity'])
-        if datetime.now(timezone.utc) - last_activity > timedelta(minutes=2):
-            session.clear()
-            return jsonify({'valid': False})
-    return jsonify({'valid': 'user_id' in session})
+# @app.route('/check_session', methods=['GET'])
+# def check_session():
+#     if 'user_id' in session and 'last_activity' in session:
+#         last_activity = datetime.fromisoformat(session['last_activity'])
+#         if datetime.now(timezone.utc) - last_activity > timedelta(minutes=2):
+#             session.clear()
+#             return jsonify({'valid': False})
+#     return jsonify({'valid': 'user_id' in session})
 
-@app.route('/logout')
+@app.route('/check_session', methods=['GET'])
+@jwt_required()
+def check_session():
+    return jsonify({'valid': True})
+
+# @app.route('/logout')
+# def logout():
+#     session.clear()
+#     return redirect(url_for('login'))
+
+@app.route('/logout', methods=['GET', 'POST'])
+@login_required
 def logout():
-    session.clear()
-    return redirect(url_for('login'))
+    if request.method == 'GET' or not request.is_json:
+        session.clear()
+        return redirect(url_for('index'))
+    else:
+        # For API requests, you might want to implement a token blacklist here
+        return jsonify({"msg": "Successfully logged out"}), 200
 
 @app.route('/dashboard')
 @login_required
@@ -232,7 +365,9 @@ def dashboard():
 
 @app.route('/admin/system_stats')
 @login_required
+@jwt_required()
 def system_stats():
+    current_user_id = get_jwt_identity()
     global last_update_time
     current_time = time.time()
     
@@ -494,6 +629,14 @@ def verify_operation_password():
         return jsonify({'status': 'success', 'message': 'Password verified'})
     else:
         return jsonify({'status': 'error', 'message': 'Incorrect password'})
+
+@jwt.expired_token_loader
+def expired_token_callback(jwt_header, jwt_payload):
+    return jsonify({"msg": "Token has expired"}), 401
+
+@jwt.invalid_token_loader
+def invalid_token_callback(error):
+    return jsonify({"msg": "Invalid token"}), 401
 
 @app.route('/admin/reset_operation_password', methods=['POST'])
 @login_required
