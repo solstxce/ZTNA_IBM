@@ -288,24 +288,74 @@ def generate_qr_for_user():
 #     return render_template('login.html')
 
 
+# @app.route('/login', methods=['GET', 'POST'])
+# def login():
+#     if request.method == 'POST':
+#         username = request.form['username']
+#         password = request.form['password']
+#         totp_code = request.form['totp_code']
+#         user = db.users.find_one({'username': username})
+#         if user and check_password_hash(user['password'], password):
+#             totp = pyotp.TOTP(user['totp_secret'])
+#             if totp.verify(totp_code):
+#                 access_token = create_access_token(identity=str(user['_id']))
+#                 refresh_token = create_refresh_token(identity=str(user['_id']))
+#                 return jsonify(access_token=access_token, refresh_token=refresh_token), 200
+#             else:
+#                 return jsonify({"msg": "Invalid TOTP code"}), 401
+#         else:
+#             return jsonify({"msg": "Bad username or password"}), 401
+#     return render_template('login.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         totp_code = request.form['totp_code']
+        
         user = db.users.find_one({'username': username})
         if user and check_password_hash(user['password'], password):
             totp = pyotp.TOTP(user['totp_secret'])
             if totp.verify(totp_code):
                 access_token = create_access_token(identity=str(user['_id']))
                 refresh_token = create_refresh_token(identity=str(user['_id']))
-                return jsonify(access_token=access_token, refresh_token=refresh_token), 200
+                
+                resp = make_response(redirect(url_for('dashboard')))
+                resp.set_cookie('access_token_cookie', access_token, httponly=True, secure=True, samesite='Strict')
+                resp.set_cookie('refresh_token_cookie', refresh_token, httponly=True, secure=True, samesite='Strict')
+                
+                flash('Login successful', 'success')
+                return resp
             else:
-                return jsonify({"msg": "Invalid TOTP code"}), 401
+                flash('Invalid TOTP code', 'error')
         else:
-            return jsonify({"msg": "Bad username or password"}), 401
+            flash('Invalid username or password', 'error')
+    
     return render_template('login.html')
+
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+    totp_code = data.get('totp_code')
+
+    user = db.users.find_one({'username': username})
+    if not user or not check_password_hash(user['password'], password):
+        return jsonify({"msg": "Invalid username or password"}), 401
+
+    totp = pyotp.TOTP(user['totp_secret'])
+    if not totp.verify(totp_code):
+        return jsonify({"msg": "Invalid TOTP code"}), 401
+
+    access_token = create_access_token(identity=str(user['_id']))
+    refresh_token = create_refresh_token(identity=str(user['_id']))
+
+    resp = jsonify({"msg": "Login successful"})
+    resp.set_cookie('access_token_cookie', access_token, httponly=True, secure=True, samesite='Strict')
+    resp.set_cookie('refresh_token_cookie', refresh_token, httponly=True, secure=True, samesite='Strict')
+    return resp, 200
 
 @app.route('/api/dashboard', methods=['GET'])
 @jwt_required()
