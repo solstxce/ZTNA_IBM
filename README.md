@@ -1,10 +1,9 @@
-&nbsp;
-<div style="margin-left: 30px;"><div>
+<br>
 [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=60&pause=800&center=true&vCenter=true&random=false&width=535&height=60&lines=Blazor+ZTI+🔥)](https://git.io/typing-svg)
 
 
 <div align="center">
-      <h1> <img src="static/images/logo.png" width="80px"><br/>ZTNA_KARE</h1>
+      <h1> <img src="static/images/logo.png" width="80px"><br/>Blazor ZTI</h1>
      </div>
 <p align="center"> <a href="https://linkedin.com/in/kvhkc}" target="_blank"><img alt="" src="https://img.shields.io/badge/LinkedIn-0077B5?style=normal&logo=linkedin&logoColor=white" style="vertical-align:center" /></a> </p>
 
