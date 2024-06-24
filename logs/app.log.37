@@ -1,0 +1,115 @@
+2024-06-24 10:03:56,207 INFO: Application startup [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:38]
+2024-06-24 10:04:07,074 INFO: Application startup [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:38]
+2024-06-24 10:04:20,640 ERROR: Unhandled exception: You must call `@jwt_required()` or `verify_jwt_in_request()` before using this method [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:138]
+Traceback (most recent call last):
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py", line 412, in api_login
+    csrf_access_token = get_jwt()['csrf']
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask_jwt_extended\utils.py", line 29, in get_jwt
+    raise RuntimeError(
+RuntimeError: You must call `@jwt_required()` or `verify_jwt_in_request()` before using this method
+2024-06-24 10:08:00,886 INFO: Application startup [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:38]
+2024-06-24 10:14:35,506 ERROR: Unhandled exception: local variable 'cpu_usage' referenced before assignment [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:138]
+Traceback (most recent call last):
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask_jwt_extended\view_decorators.py", line 170, in decorator
+    return current_app.ensure_sync(fn)(*args, **kwargs)
+  File "C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py", line 620, in system_stats
+    'cpu_usage': cpu_usage,
+UnboundLocalError: local variable 'cpu_usage' referenced before assignment
+2024-06-24 10:14:56,624 ERROR: Unhandled exception: local variable 'cpu_usage' referenced before assignment [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:138]
+Traceback (most recent call last):
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask_jwt_extended\view_decorators.py", line 170, in decorator
+    return current_app.ensure_sync(fn)(*args, **kwargs)
+  File "C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py", line 620, in system_stats
+    'cpu_usage': cpu_usage,
+UnboundLocalError: local variable 'cpu_usage' referenced before assignment
+2024-06-24 10:15:46,746 ERROR: Unhandled exception: local variable 'cpu_usage' referenced before assignment [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:138]
+Traceback (most recent call last):
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask_jwt_extended\view_decorators.py", line 170, in decorator
+    return current_app.ensure_sync(fn)(*args, **kwargs)
+  File "C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py", line 620, in system_stats
+    'cpu_usage': cpu_usage,
+UnboundLocalError: local variable 'cpu_usage' referenced before assignment
+2024-06-24 10:16:06,765 ERROR: Unhandled exception: local variable 'cpu_usage' referenced before assignment [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:138]
+Traceback (most recent call last):
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask_jwt_extended\view_decorators.py", line 170, in decorator
+    return current_app.ensure_sync(fn)(*args, **kwargs)
+  File "C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py", line 620, in system_stats
+    'cpu_usage': cpu_usage,
+UnboundLocalError: local variable 'cpu_usage' referenced before assignment
+2024-06-24 10:17:57,532 ERROR: Unhandled exception: local variable 'cpu_usage' referenced before assignment [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:138]
+Traceback (most recent call last):
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask_jwt_extended\view_decorators.py", line 170, in decorator
+    return current_app.ensure_sync(fn)(*args, **kwargs)
+  File "C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py", line 620, in system_stats
+    'cpu_usage': cpu_usage,
+UnboundLocalError: local variable 'cpu_usage' referenced before assignment
+2024-06-24 10:18:17,550 ERROR: Unhandled exception: local variable 'cpu_usage' referenced before assignment [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:138]
+Traceback (most recent call last):
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask_jwt_extended\view_decorators.py", line 170, in decorator
+    return current_app.ensure_sync(fn)(*args, **kwargs)
+  File "C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py", line 620, in system_stats
+    'cpu_usage': cpu_usage,
+UnboundLocalError: local variable 'cpu_usage' referenced before assignment
+2024-06-24 10:23:20,888 ERROR: Unhandled exception: local variable 'cpu_usage' referenced before assignment [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:138]
+Traceback (most recent call last):
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask_jwt_extended\view_decorators.py", line 170, in decorator
+    return current_app.ensure_sync(fn)(*args, **kwargs)
+  File "C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py", line 620, in system_stats
+    'cpu_usage': cpu_usage,
+UnboundLocalError: local variable 'cpu_usage' referenced before assignment
+2024-06-24 10:25:09,333 INFO: Application startup [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:38]
+2024-06-24 12:17:58,564 INFO: Application startup [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:38]
+2024-06-24 12:21:20,398 INFO: Application startup [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:38]
+2024-06-24 12:22:18,566 INFO: Application startup [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:38]
+2024-06-24 12:22:19,266 INFO: Application startup [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:38]
+2024-06-24 12:28:59,991 ERROR: Unhandled exception: 'user_id' [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:138]
+Traceback (most recent call last):
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py", line 150, in decorated_function
+    return f(*args, **kwargs)
+  File "C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py", line 150, in decorated_function
+    return f(*args, **kwargs)
+  File "C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py", line 169, in decorated_function
+    return f(*args, **kwargs)
+  File "C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py", line 815, in verify_operation_password
+    admin_id = ObjectId(session['user_id'])
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\sessions.py", line 84, in __getitem__
+    return super().__getitem__(key)
+KeyError: 'user_id'
+2024-06-24 12:29:37,081 INFO: Application startup [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:38]
+2024-06-24 12:30:41,926 INFO: Application startup [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:38]

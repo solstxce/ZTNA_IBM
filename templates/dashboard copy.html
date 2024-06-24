@@ -1,0 +1,670 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .stats-card {
+        height: 300px;
+    }
+</style>
+
+<h1>Dashboard</h1>
+<p>Welcome, <span id="username"></span>!</p>
+
+<div id="admin-dashboard" style="display: none;">
+    <h2><strong>Admin Dashboard</strong></h2>
+
+    <!-- System Stats Section -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3>System Stats</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div id="cpu-usage" class="stats-card"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div id="memory-usage" class="stats-card"></div>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div id="disk-usage" class="stats-card"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div id="network-usage" class="stats-card"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Plotly.js -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<!-- <script>
+    const accessT = '{{ access_token }}';
+    const refreshT = '{{ refresh_token }}';
+
+    localStorage.setItem('access_token_cookie', accessT);
+    localStorage.setItem('refresh_token_cookie', refreshT);
+
+    function getCsrfToken() {
+        return document.cookie.split('; ').find(row => row.startsWith('csrf_access_token=')).split('=')[1];
+    }
+
+    function fetchWithT(url, options = {}) {
+        const token = localStorage.getItem('access_token_cookie');
+        if (!token) {
+            window.location.href = '/login';
+            return;
+        }
+        const csrfToken = getCsrfToken();
+        const defaultOptions = {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'X-CSRF-TOKEN': csrfToken,
+                'Content-Type': 'application/json',
+            },
+        };
+        return fetch(url, { ...defaultOptions, ...options })
+            .then(response => {
+                if (response.status === 401) {
+                    return refreshToken().then(success => {
+                        if (success) {
+                            return fetchWithT(url, options);
+                        } else {
+                            window.location.href = '/login';
+                        }
+                    });
+                }
+                return response;
+            });
+    }
+
+    function refreshToken() {
+        const refreshToken = localStorage.getItem('refresh_token_cookie');
+        if (!refreshToken) {
+            return Promise.resolve(false);
+        }
+        const csrfToken = getCsrfToken();
+        return fetch('/refresh', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${refreshToken}`,
+                'X-CSRF-TOKEN': csrfToken,
+                'Content-Type': 'application/json',
+            },
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.access_token) {
+                    localStorage.setItem('access_token_cookie', data.access_token);
+                    return true;
+                }
+                return false;
+            })
+            .catch(() => false);
+    }
+
+    function resetInactivityTimer() {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(checkInactivity, inactivityTime);
+        lastActivityTime = Date.now();
+    }
+    
+    function checkInactivity() {
+        if (Date.now() - lastActivityTime >= inactivityTime) {
+            logout();
+        } else {
+            inactivityTimer = setTimeout(checkInactivity, inactivityTime - (Date.now() - lastActivityTime));
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('access_token_cookie');
+        localStorage.removeItem('refresh_token_cookie');
+        window.location.href = '/logout';
+    }
+
+    function updateServerActivity() {
+        fetchWithT('/update_activity', { method: 'POST' });
+    }
+
+    function checkSession() {
+        fetchWithT('/check_session')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.valid) {
+                    logout();
+                }
+            });
+    }
+
+    document.addEventListener('mousemove', resetInactivityTimer);
+    document.addEventListener('keypress', resetInactivityTimer);
+
+    resetInactivityTimer();
+    setInterval(() => {
+        updateServerActivity();
+        checkSession();
+    }, updateInterval);
+
+    let networkChart;
+
+    function loadDashboardData() {
+        fetchWithT('/api/dashboard')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('username').textContent = data.username;
+                if (data.role === 'admin') {
+                    document.getElementById('admin-dashboard').style.display = 'block';
+                    setInterval(fetchSystemStats, 10000);
+                    fetchSystemStats();
+                }
+            })
+            .catch(error => {
+                console.error('Error loading dashboard data:', error);
+            });
+    }
+
+    function fetchSystemStats() {
+        fetchWithT('/admin/system_stats')
+            .then(response => response.json())
+            .then(data => {
+                updateSystemStats(data);
+            })
+            .catch(error => {
+                console.error('Error fetching system stats:', error);
+            });
+    }
+
+    function updateSystemStats(data) {
+        const formattedTimestamps = data.timestamps.map(timestamp =>
+            new Date(timestamp * 1000).toLocaleTimeString()
+        );
+
+        const cpuTrace = {
+            labels: Object.keys(data.cpu_usage),
+            values: Object.values(data.cpu_usage),
+            type: 'pie',
+            name: 'CPU Usage'
+        };
+        const cpuLayout = {
+            title: 'CPU Usage'
+        };
+        Plotly.newPlot('cpu-usage', [cpuTrace], cpuLayout);
+
+        const memoryTrace = {
+            labels: Object.keys(data.memory_usage),
+            values: Object.values(data.memory_usage),
+            type: 'pie',
+            name: 'Memory Usage'
+        };
+        const memoryLayout = {
+            title: 'Memory Usage'
+        };
+        Plotly.newPlot('memory-usage', [memoryTrace], memoryLayout);
+
+        const diskTrace = {
+            labels: Object.keys(data.disk_usage),
+            values: Object.values(data.disk_usage),
+            type: 'pie',
+            name: 'Disk Usage'
+        };
+        const diskLayout = {
+            title: 'Disk Usage'
+        };
+        Plotly.newPlot('disk-usage', [diskTrace], diskLayout);
+
+        if (!networkChart) {
+            const networkTrace = {
+                x: formattedTimestamps,
+                y: data.network_usage,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Network Usage'
+            };
+            const networkLayout = {
+                title: 'Network Usage',
+                yaxis: { title: 'MB' }
+            };
+            networkChart = Plotly.newPlot('network-usage', [networkTrace], networkLayout);
+        } else {
+            Plotly.update('network-usage', {
+                x: [formattedTimestamps],
+                y: [data.network_usage]
+            });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadDashboardData);
+</script> -->
+
+<script>
+    const accessT = '{{ access_token }}';
+    const refreshT = '{{ refresh_token }}';
+    let inactivityTimer;
+    let lastActivityTime = Date.now();
+    const inactivityTime = 2 * 60 * 1000; // 2 minutes in milliseconds
+    const updateInterval = 30 * 1000; // 30 seconds in milliseconds
+    // Store tokens in localStorage
+    localStorage.setItem('access_token_cookie', accessT);
+    localStorage.setItem('refresh_token_cookie', refreshT);
+
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    function fetchWithT(url, options = {}) {
+        const token = localStorage.getItem('access_token_cookie');
+        if (!token) {
+            window.location.href = '/login';
+            return;
+        }
+        const csrfToken = getCookie('csrf_access_token');
+        const defaultOptions = {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'X-CSRF-TOKEN': csrfToken,
+                'Content-Type': 'application/json',
+            },
+        };
+        return fetch(url, { ...defaultOptions, ...options })
+            .then(response => {
+                if (response.status === 401) {
+                    return refreshToken().then(success => {
+                        if (success) {
+                            return fetchWithT(url, options);
+                        } else {
+                            window.location.href = '/login';
+                        }
+                    });
+                }
+                return response;
+            });
+    }
+
+    function refreshToken() {
+        const refreshToken = localStorage.getItem('refresh_token_cookie');
+        if (!refreshToken) {
+            return Promise.resolve(false);
+        }
+        const csrfToken = getCookie('csrf_refresh_token');
+        return fetch('/refresh', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${refreshToken}`,
+                'X-CSRF-TOKEN': csrfToken,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.access_token) {
+                localStorage.setItem('access_token_cookie', data.access_token);
+                return true;
+            }
+            return false;
+        })
+        .catch(() => false);
+    }
+
+    function resetInactivityTimer() {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(checkInactivity, inactivityTime);
+        lastActivityTime = Date.now();
+    }
+    
+    function checkInactivity() {
+        if (Date.now() - lastActivityTime >= inactivityTime) {
+            logout();
+        } else {
+            inactivityTimer = setTimeout(checkInactivity, inactivityTime - (Date.now() - lastActivityTime));
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('access_token_cookie');
+        localStorage.removeItem('refresh_token_cookie');
+        window.location.href = '/logout';
+    }
+
+    function updateServerActivity() {
+        fetchWithT('/update_activity', { method: 'POST' });
+    }
+
+    function checkSession() {
+        fetchWithT('/check_session')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.valid) {
+                    logout();
+                }
+            });
+    }
+
+    document.addEventListener('mousemove', resetInactivityTimer);
+    document.addEventListener('keypress', resetInactivityTimer);
+
+    resetInactivityTimer();
+    setInterval(() => {
+        updateServerActivity();
+        checkSession();
+    }, updateInterval);
+
+    let networkChart;
+
+    function loadDashboardData() {
+        fetchWithT('/api/dashboard')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('username').textContent = data.username;
+                if (data.role === 'admin') {
+                    document.getElementById('admin-dashboard').style.display = 'block';
+                    setInterval(fetchSystemStats, 10000);
+                    fetchSystemStats();
+                }
+            })
+            .catch(error => {
+                console.error('Error loading dashboard data:', error);
+            });
+    }
+
+    function fetchSystemStats() {
+        fetchWithT('/admin/system_stats')
+            .then(response => response.json())
+            .then(data => {
+                updateSystemStats(data);
+            })
+            .catch(error => {
+                console.error('Error fetching system stats:', error);
+            });
+    }
+
+    function updateSystemStats(data) {
+        const formattedTimestamps = data.timestamps.map(timestamp =>
+            new Date(timestamp * 1000).toLocaleTimeString()
+        );
+
+        const cpuTrace = {
+            labels: Object.keys(data.cpu_usage),
+            values: Object.values(data.cpu_usage),
+            type: 'pie',
+            name: 'CPU Usage'
+        };
+        const cpuLayout = {
+            title: 'CPU Usage'
+        };
+        Plotly.newPlot('cpu-usage', [cpuTrace], cpuLayout);
+
+        const memoryTrace = {
+            labels: Object.keys(data.memory_usage),
+            values: Object.values(data.memory_usage),
+            type: 'pie',
+            name: 'Memory Usage'
+        };
+        const memoryLayout = {
+            title: 'Memory Usage'
+        };
+        Plotly.newPlot('memory-usage', [memoryTrace], memoryLayout);
+
+        const diskTrace = {
+            labels: Object.keys(data.disk_usage),
+            values: Object.values(data.disk_usage),
+            type: 'pie',
+            name: 'Disk Usage'
+        };
+        const diskLayout = {
+            title: 'Disk Usage'
+        };
+        Plotly.newPlot('disk-usage', [diskTrace], diskLayout);
+
+        if (!networkChart) {
+            const networkTrace = {
+                x: formattedTimestamps,
+                y: data.network_usage,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Network Usage'
+            };
+            const networkLayout = {
+                title: 'Network Usage',
+                yaxis: { title: 'MB' }
+            };
+            networkChart = Plotly.newPlot('network-usage', [networkTrace], networkLayout);
+        } else {
+            Plotly.update('network-usage', {
+                x: [formattedTimestamps],
+                y: [data.network_usage]
+            });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadDashboardData);
+</script>
+
+
+</body>
+</html>
+
+<!-- <script>
+  const accessT = '{{ access_token }}';
+        const refreshT = '{{ refresh_token }}';
+
+        // Store tokens in localStorage
+        localStorage.setItem('access_token_cookie', accessT);
+        localStorage.setItem('refresh_token_cookie', refreshT);
+
+        let inactivityTimer;
+        let lastActivityTime = Date.now();
+        const inactivityTime = 2 * 60 * 1000; // 2 minutes in milliseconds
+        const updateInterval = 30 * 1000; // 30 seconds in milliseconds
+
+        function setJWTToken(token) {
+            localStorage.setItem('access_token_cookie', token);
+        }
+
+        function fetchWithT(url, options = {}) {
+            const token = localStorage.getItem('access_token_cookie');
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+            const defaultOptions = {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            };
+            return fetch(url, { ...defaultOptions, ...options })
+                .then(response => {
+                    if (response.status === 401) {
+                        // Token expired, try to refresh
+                        return refreshToken().then(success => {
+                            if (success) {
+                                return fetchWithT(url, options);
+                            } else {
+                                window.location.href = '/login';
+                            }
+                        });
+                    }
+                    return response;
+                });
+        }
+
+        function refreshToken() {
+            const refreshToken = localStorage.getItem('refresh_token_cookie');
+            if (!refreshToken) {
+                return Promise.resolve(false);
+            }
+            return fetch('/refresh', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${refreshToken}`,
+                },
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.access_token) {
+                        setJWTToken(data.access_token);
+                        return true;
+                    }
+                    return false;
+                })
+                .catch(() => false);
+        }
+
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(checkInactivity, inactivityTime);
+            lastActivityTime = Date.now();
+        }
+        
+        function checkInactivity() {
+            if (Date.now() - lastActivityTime >= inactivityTime) {
+                logout();
+            } else {
+                inactivityTimer = setTimeout(checkInactivity, inactivityTime - (Date.now() - lastActivityTime));
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('access_token_cookie');
+            localStorage.removeItem('refresh_token_cookie');
+            window.location.href = '/logout';
+        }
+
+        function updateServerActivity() {
+            fetchWithT('/update_activity', { method: 'POST' });
+        }
+
+        function checkSession() {
+            fetchWithT('/check_session')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.valid) {
+                        logout();
+                    }
+                });
+        }
+
+        document.addEventListener('mousemove', resetInactivityTimer);
+        document.addEventListener('keypress', resetInactivityTimer);
+
+        // Initial setup
+        resetInactivityTimer();
+
+        // Periodically update server and check session
+        setInterval(() => {
+            updateServerActivity();
+            checkSession();
+        }, updateInterval);
+
+        // System stats functions
+        let networkChart;
+
+        function loadDashboardData() {
+            fetchWithT('/api/dashboard')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('username').textContent = data.username;
+                    if (data.role === 'admin') {
+                        document.getElementById('admin-dashboard').style.display = 'block';
+                        // Update system stats every 10 seconds
+                        setInterval(fetchSystemStats, 10000);
+                        // Initial fetch of system stats
+                        fetchSystemStats();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading dashboard data:', error);
+                });
+        }
+
+        function fetchSystemStats() {
+            fetchWithT('/admin/system_stats')
+                .then(response => response.json())
+                .then(data => {
+                    updateSystemStats(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching system stats:', error);
+                });
+        }
+
+        function updateSystemStats(data) {
+            // Convert Unix timestamps to readable format
+            const formattedTimestamps = data.timestamps.map(timestamp =>
+                new Date(timestamp * 1000).toLocaleTimeString()
+            );
+
+            // CPU Usage
+            const cpuTrace = {
+                labels: Object.keys(data.cpu_usage),
+                values: Object.values(data.cpu_usage),
+                type: 'pie',
+                name: 'CPU Usage'
+            };
+            const cpuLayout = {
+                title: 'CPU Usage'
+            };
+            Plotly.newPlot('cpu-usage', [cpuTrace], cpuLayout);
+
+            // Memory Usage
+            const memoryTrace = {
+                labels: Object.keys(data.memory_usage),
+                values: Object.values(data.memory_usage),
+                type: 'pie',
+                name: 'Memory Usage'
+            };
+            const memoryLayout = {
+                title: 'Memory Usage'
+            };
+            Plotly.newPlot('memory-usage', [memoryTrace], memoryLayout);
+
+            // Disk Usage
+            const diskTrace = {
+                labels: Object.keys(data.disk_usage),
+                values: Object.values(data.disk_usage),
+                type: 'pie',
+                name: 'Disk Usage'
+            };
+            const diskLayout = {
+                title: 'Disk Usage'
+            };
+            Plotly.newPlot('disk-usage', [diskTrace], diskLayout);
+
+            // Network Usage
+            if (!networkChart) {
+                const networkTrace = {
+                    x: formattedTimestamps,
+                    y: data.network_usage,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    name: 'Network Usage'
+                };
+                const networkLayout = {
+                    title: 'Network Usage',
+                    yaxis: { title: 'MB' }
+                };
+                networkChart = Plotly.newPlot('network-usage', [networkTrace], networkLayout);
+            } else {
+                Plotly.update('network-usage', {
+                    x: [formattedTimestamps],
+                    y: [data.network_usage]
+                });
+            }
+        }
+
+        // Load dashboard data when the page loads
+        document.addEventListener('DOMContentLoaded', loadDashboardData);
+</script> -->
+
+{% endblock %}

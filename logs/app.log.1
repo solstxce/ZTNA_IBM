@@ -1,0 +1,110 @@
+2024-06-24 13:21:53,779 INFO: Application startup [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:38]
+2024-06-24 13:21:54,630 INFO: Application startup [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:38]
+2024-06-24 13:25:25,227 INFO: Application startup [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:38]
+2024-06-24 13:26:35,478 ERROR: Unhandled exception: E11000 duplicate key error collection: rbac_db.admin_action_passwords index: user_id_1 dup key: { user_id: null }, full error: {'index': 0, 'code': 11000, 'errmsg': 'E11000 duplicate key error collection: rbac_db.admin_action_passwords index: user_id_1 dup key: { user_id: null }', 'keyPattern': {'user_id': 1}, 'keyValue': {'user_id': None}} [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:138]
+Traceback (most recent call last):
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py", line 150, in decorated_function
+    return f(*args, **kwargs)
+  File "C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py", line 150, in decorated_function
+    return f(*args, **kwargs)
+  File "C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py", line 169, in decorated_function
+    return f(*args, **kwargs)
+  File "C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py", line 799, in set_operation_passwords
+    db.admin_action_passwords.update_one(
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\collection.py", line 1077, in update_one
+    self._update_retryable(
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\collection.py", line 872, in _update_retryable
+    return self.__database.client._retryable_write(
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\mongo_client.py", line 1569, in _retryable_write
+    return self._retry_with_session(retryable, func, s, bulk, operation, operation_id)
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\mongo_client.py", line 1455, in _retry_with_session
+    return self._retry_internal(
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\_csot.py", line 108, in csot_wrapper
+    return func(self, *args, **kwargs)
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\mongo_client.py", line 1490, in _retry_internal
+    return _ClientConnectionRetryable(
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\mongo_client.py", line 2347, in run
+    return self._read() if self._is_read else self._write()
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\mongo_client.py", line 2464, in _write
+    return self._func(self._session, conn, self._retryable)  # type: ignore
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\collection.py", line 853, in _update
+    return self._update(
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\collection.py", line 815, in _update
+    _check_write_command_response(result)
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\helpers.py", line 286, in _check_write_command_response
+    _raise_last_write_error(write_errors)
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\helpers.py", line 256, in _raise_last_write_error
+    raise DuplicateKeyError(error.get("errmsg"), 11000, error)
+pymongo.errors.DuplicateKeyError: E11000 duplicate key error collection: rbac_db.admin_action_passwords index: user_id_1 dup key: { user_id: null }, full error: {'index': 0, 'code': 11000, 'errmsg': 'E11000 duplicate key error collection: rbac_db.admin_action_passwords index: user_id_1 dup key: { user_id: null }', 'keyPattern': {'user_id': 1}, 'keyValue': {'user_id': None}}
+2024-06-24 13:28:26,863 INFO: Application startup [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:38]
+2024-06-24 13:28:30,253 INFO: Application startup [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:38]
+2024-06-24 13:29:15,961 ERROR: Unhandled exception: name 'pymongo' is not defined [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:138]
+Traceback (most recent call last):
+  File "C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py", line 800, in set_operation_passwords
+    db.admin_action_passwords.update_one(
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\collection.py", line 1077, in update_one
+    self._update_retryable(
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\collection.py", line 872, in _update_retryable
+    return self.__database.client._retryable_write(
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\mongo_client.py", line 1569, in _retryable_write
+    return self._retry_with_session(retryable, func, s, bulk, operation, operation_id)
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\mongo_client.py", line 1455, in _retry_with_session
+    return self._retry_internal(
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\_csot.py", line 108, in csot_wrapper
+    return func(self, *args, **kwargs)
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\mongo_client.py", line 1490, in _retry_internal
+    return _ClientConnectionRetryable(
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\mongo_client.py", line 2347, in run
+    return self._read() if self._is_read else self._write()
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\mongo_client.py", line 2464, in _write
+    return self._func(self._session, conn, self._retryable)  # type: ignore
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\collection.py", line 853, in _update
+    return self._update(
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\collection.py", line 815, in _update
+    _check_write_command_response(result)
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\helpers.py", line 286, in _check_write_command_response
+    _raise_last_write_error(write_errors)
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\pymongo\helpers.py", line 256, in _raise_last_write_error
+    raise DuplicateKeyError(error.get("errmsg"), 11000, error)
+pymongo.errors.DuplicateKeyError: E11000 duplicate key error collection: rbac_db.admin_action_passwords index: user_id_1 dup key: { user_id: null }, full error: {'index': 0, 'code': 11000, 'errmsg': 'E11000 duplicate key error collection: rbac_db.admin_action_passwords index: user_id_1 dup key: { user_id: null }', 'keyPattern': {'user_id': 1}, 'keyValue': {'user_id': None}}
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py", line 150, in decorated_function
+    return f(*args, **kwargs)
+  File "C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py", line 150, in decorated_function
+    return f(*args, **kwargs)
+  File "C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py", line 169, in decorated_function
+    return f(*args, **kwargs)
+  File "C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py", line 805, in set_operation_passwords
+    except pymongo.errors.DuplicateKeyError:
+NameError: name 'pymongo' is not defined
+2024-06-24 13:29:48,232 INFO: Application startup [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:39]
+2024-06-24 13:32:44,276 INFO: Application startup [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:39]
+2024-06-24 13:33:15,873 INFO: Application startup [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:39]
+2024-06-24 13:33:54,246 ERROR: Unhandled exception: wrapper() missing 1 required positional argument: 'fn' [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:139]
+Traceback (most recent call last):
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py", line 151, in decorated_function
+    return f(*args, **kwargs)
+TypeError: wrapper() missing 1 required positional argument: 'fn'
+2024-06-24 13:34:33,869 INFO: Application startup [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:39]
+2024-06-24 13:34:35,041 ERROR: Unhandled exception: wrapper() missing 1 required positional argument: 'fn' [in C:\Users\Solstxce\Projects\IBM_Internship_ZT\app.py:139]
+Traceback (most recent call last):
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Solstxce\scoop\apps\python39\current\lib\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+TypeError: wrapper() missing 1 required positional argument: 'fn'

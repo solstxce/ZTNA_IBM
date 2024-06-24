@@ -65,8 +65,7 @@
                 <h2>Manage Roles</h2>
             </div>
             <div class="card-body">
-                <button type="button" class="btn btn-warning mb-3" onclick="showConfirmModal('purge_roles')">Purge
-                    Duplicate Roles</button>
+                <button type="button" class="btn btn-warning mb-3" onclick="showConfirmModal('purge_roles')">Purge Duplicate Roles</button>
                 <div id="role-list" class="list-group">
                     <!-- Roles will be populated dynamically -->
                 </div>
@@ -87,14 +86,10 @@
                         <button class="btn btn-outline-success" type="button">Search 🔍</button>
                     </div>
                 </div>
-                <div style="max-height: 150px; margin-bottom: 10px; overflow:scroll; -webkit-overflow-scrolling: touch;"
-                    id="user-list" class="list-group mb-3"></div>
+                <div style="max-height: 150px; margin-bottom: 10px; overflow:scroll; -webkit-overflow-scrolling: touch;" id="user-list" class="list-group mb-3"></div>
                 <div id="user-details" class="d-none">
-                    <strong>
-                        <h3 style="font-weight: bold;" id="selected-username"></h3>
-                    </strong>
-                    <p style="font-weight: bold;">Current Role: <span style="font-weight: normal;"
-                            id="current-role"></span></p>
+                    <strong><h3 style="font-weight: bold;" id="selected-username"></h3></strong>
+                    <p style="font-weight: bold;">Current Role: <span style="font-weight: normal;" id="current-role"></span></p>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="action" id="change-role" value="role">
                         <label class="form-check-label" for="change-role">
@@ -159,8 +154,7 @@
 </div>
 
 <!-- Set Operation Passwords Modal -->
-<div class="modal fade" id="setPasswordsModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-    aria-labelledby="setPasswordsModalLabel" aria-hidden="true">
+<div class="modal fade" id="setPasswordsModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="setPasswordsModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -212,86 +206,10 @@
         confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
         fetchUsers();
         fetchRoles();
-        checkOperationPasswords();
     });
 
-    function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
-    }
-
-    function fetchWithToken(url, options = {}) {
-        const token = localStorage.getItem('access_token_cookie');
-        if (!token) {
-            window.location.href = '/login';
-            return;
-        }
-        const csrfToken = getCookie('csrf_access_token');
-        const defaultOptions = {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'X-CSRF-TOKEN': csrfToken,
-                'Content-Type': 'application/json',
-            },
-        };
-        return fetch(url, { ...defaultOptions, ...options })
-            .then(response => {
-                if (response.status === 401) {
-                    return refreshToken().then(success => {
-                        if (success) {
-                            return fetchWithToken(url, options);
-                        } else {
-                            window.location.href = '/login';
-                        }
-                    });
-                }
-                return response;
-            });
-    }
-
-    function refreshToken() {
-        const refreshToken = localStorage.getItem('refresh_token_cookie');
-        if (!refreshToken) {
-            return Promise.resolve(false);
-        }
-        const csrfToken = getCookie('csrf_refresh_token');
-        return fetch('/refresh', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${refreshToken}`,
-                'X-CSRF-TOKEN': csrfToken,
-                'Content-Type': 'application/json',
-            },
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.access_token) {
-                    localStorage.setItem('access_token_cookie', data.access_token);
-                    return true;
-                }
-                return false;
-            })
-            .catch(() => false);
-    }
-    function displayUsers(filteredUsers) {
-        const userList = document.getElementById('user-list');
-        userList.innerHTML = '';
-        filteredUsers.forEach(user => {
-            const item = document.createElement('a');
-            item.href = '#';
-            item.classList.add('list-group-item', 'list-group-item-action');
-            item.textContent = user.username;
-            item.onclick = (e) => {
-                e.preventDefault();
-                showUserDetails(user);
-            };
-            userList.appendChild(item);
-        });
-    }
-
     function fetchUsers() {
-        fetchWithToken('/admin/users')
+        fetch('/admin/users')
             .then(response => response.json())
             .then(data => {
                 users = data.users;
@@ -300,28 +218,13 @@
     }
 
     function fetchRoles() {
-        fetchWithToken('/admin/roles')
+        fetch('/admin/roles')
             .then(response => response.json())
             .then(data => {
                 roles = data.roles;
                 populateRoleSelects();
                 displayRoles();
             });
-    }
-
-    function checkOperationPasswords() {
-        fetchWithToken('/admin/check_operation_passwords')
-            .then(response => response.json())
-            .then(data => {
-                if (!data.all_set) {
-                    showSetPasswordsModal();
-                }
-            });
-    }
-
-    function showSetPasswordsModal() {
-        const modal = new bootstrap.Modal(document.getElementById('setPasswordsModal'));
-        modal.show();
     }
 
     function populateRoleSelects() {
@@ -351,7 +254,6 @@
         });
     }
 
-
     function showConfirmModal(action, roleName = null) {
         currentAction = action;
         if (action === 'delete_role') {
@@ -365,122 +267,86 @@
     }
 
     document.getElementById('confirm-action').addEventListener('click', function () {
-        const operationPassword = document.getElementById('admin-password').value;
+        const adminPassword = document.getElementById('admin-password').value;
         if (currentAction === 'delete_role') {
             const roleName = this.getAttribute('data-role');
-            deleteRole(operationPassword, roleName);
+            deleteRole(adminPassword, roleName);
         } else if (currentAction === 'create_user') {
-            createUser(operationPassword);
+            createUser(adminPassword);
         } else if (currentAction === 'purge_roles') {
-            purgeRoles(operationPassword);
+            purgeRoles(adminPassword);
         } else if (currentAction === 'create_role') {
-            createRole(operationPassword);
+            createRole(adminPassword);
         } else if (currentAction === 'change_role') {
-            changeRole(operationPassword);
+            changeRole(adminPassword);
         } else if (currentAction === 'change_password') {
-            changePassword(operationPassword);
+            changePassword(adminPassword);
         }
     });
 
-    function verifyOperationPassword(operation, password) {
-        return fetchWithToken('/admin/verify_operation_password', {
-            method: 'POST',
-            body: JSON.stringify({ operation, password })
-        })
-            .then(response => response.json())
-            .then(data => data.status === 'success');
-    }
+    function createUser(adminPassword) {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('new-user-password').value;
+        const role = document.getElementById('new-user-role').value;
 
-    function createUser(operationPassword) {
-        verifyOperationPassword('create_user', operationPassword).then(verified => {
-            if (verified) {
-                const username = document.getElementById('username').value;
-                const password = document.getElementById('new-user-password').value;
-                const role = document.getElementById('new-user-role').value;
-
-                sendRequest('/admin', {
-                    action: 'create_user',
-                    username: username,
-                    password: password,
-                    role: role
-                });
-            } else {
-                showAlert('error', 'Invalid operation password');
-            }
+        sendRequest('/admin', {
+            action: 'create_user',
+            username: username,
+            password: password,
+            role: role,
+            admin_password: adminPassword
         });
     }
 
-    function purgeRoles(operationPassword) {
-        verifyOperationPassword('manage_role', operationPassword).then(verified => {
-            if (verified) {
-                sendRequest('/admin', {
-                    action: 'purge_roles'
-                });
-            } else {
-                showAlert('error', 'Invalid operation password');
-            }
+    function purgeRoles(adminPassword) {
+        sendRequest('/admin', {
+            action: 'purge_roles',
+            admin_password: adminPassword
         });
     }
 
-    function createRole(operationPassword) {
-        verifyOperationPassword('create_role', operationPassword).then(verified => {
-            if (verified) {
-                const newRole = document.getElementById('new-role').value;
-                sendRequest('/admin', {
-                    action: 'create_role',
-                    new_role: newRole
-                });
-            } else {
-                showAlert('error', 'Invalid operation password');
-            }
+    function createRole(adminPassword) {
+        const newRole = document.getElementById('new-role').value;
+        sendRequest('/admin', {
+            action: 'create_role',
+            new_role: newRole,
+            admin_password: adminPassword
         });
     }
 
-    function changeRole(operationPassword) {
-        verifyOperationPassword('manage_users', operationPassword).then(verified => {
-            if (verified) {
-                const username = document.getElementById('selected-username').textContent;
-                const newRole = document.getElementById('new-role-list').value;
-                sendRequest('/admin/manage_role', {
-                    username: username,
-                    new_role: newRole
-                });
-            } else {
-                showAlert('error', 'Invalid operation password');
-            }
+    function changeRole(adminPassword) {
+        const username = document.getElementById('selected-username').textContent;
+        const newRole = document.getElementById('new-role-list').value;
+        sendRequest('/admin/manage_role', {
+            username: username,
+            new_role: newRole,
+            admin_password: adminPassword
         });
     }
 
-    function changePassword(operationPassword) {
-        verifyOperationPassword('manage_users', operationPassword).then(verified => {
-            if (verified) {
-                const username = document.getElementById('selected-username').textContent;
-                const newPassword = document.getElementById('new-password').value;
-                sendRequest('/admin/manage_password', {
-                    username: username,
-                    new_password: newPassword
-                });
-            } else {
-                showAlert('error', 'Invalid operation password');
-            }
+    function changePassword(adminPassword) {
+        const username = document.getElementById('selected-username').textContent;
+        const newPassword = document.getElementById('new-password').value;
+        sendRequest('/admin/manage_password', {
+            username: username,
+            new_password: newPassword,
+            admin_password: adminPassword
         });
     }
 
-    function deleteRole(operationPassword, roleName) {
-        verifyOperationPassword('manage_role', operationPassword).then(verified => {
-            if (verified) {
-                sendRequest('/admin/delete_role', {
-                    role_name: roleName
-                });
-            } else {
-                showAlert('error', 'Invalid operation password');
-            }
+    function deleteRole(adminPassword, roleName) {
+        sendRequest('/admin/delete_role', {
+            role_name: roleName,
+            admin_password: adminPassword
         });
     }
 
     function sendRequest(url, data) {
-        fetchWithToken(url, {
+        fetch(url, {
             method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
             body: JSON.stringify(data)
         })
             .then(response => response.json())
@@ -498,6 +364,7 @@
                 }
             });
     }
+
     function showAlert(status, message) {
         const alertContainer = document.getElementById('alert-container');
         alertContainer.innerHTML = '';
@@ -518,6 +385,21 @@
         return users.filter(user => user.username.toLowerCase().includes(query.toLowerCase()));
     }
 
+    function displayUsers(filteredUsers) {
+        const userList = document.getElementById('user-list');
+        userList.innerHTML = '';
+        filteredUsers.forEach(user => {
+            const item = document.createElement('a');
+            item.href = '#';
+            item.classList.add('list-group-item', 'list-group-item-action');
+            item.textContent = user.username;
+            item.onclick = (e) => {
+                e.preventDefault();
+                showUserDetails(user);
+            };
+            userList.appendChild(item);
+        });
+    }
 
     function showUserDetails(user) {
         const userDetails = document.getElementById('user-details');
@@ -580,60 +462,69 @@
             });
     }
 
-    //unique operation password
-    function validatePasswords() {
-        const passwordFields = [
-            'create-role-password',
-            'manage-role-password',
-            'create-user-password',
-            'manage-users-password'
-        ];
-        const passwords = passwordFields.map(id => document.getElementById(id).value);
-
-        // Check if all passwords are unique
-        if (new Set(passwords).size !== passwords.length) {
-            showAlert('error', 'All operation passwords must be unique');
+//unique operation password
+function validatePasswords() {
+    const passwordFields = [
+        'create-role-password',
+        'manage-role-password',
+        'create-user-password',
+        'manage-users-password'
+    ];
+    const passwords = passwordFields.map(id => document.getElementById(id).value);
+    
+    // Check if all passwords are unique
+    if (new Set(passwords).size !== passwords.length) {
+        showAlert('error', 'All operation passwords must be unique');
+        return false;
+    }
+    
+    // Check if each password meets the requirements
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$/;
+    for (let i = 0; i < passwordFields.length; i++) {
+        if (!passwordRegex.test(passwords[i])) {
+            showAlert('error', `${passwordFields[i].replace('-', ' ').toUpperCase()} does not meet requirements`);
             return false;
         }
+    }
+    
+    return true;
+}
 
-        // Check if each password meets the requirements
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$/;
-        for (let i = 0; i < passwordFields.length; i++) {
-            if (!passwordRegex.test(passwords[i])) {
-                showAlert('error', `${passwordFields[i].replace('-', ' ').toUpperCase()} does not meet requirements`);
-                return false;
-            }
-        }
-
-        return true;
+function setOperationPasswords() {
+    if (!validatePasswords()) {
+        return;
     }
 
-    function setOperationPasswords() {
-        if (!validatePasswords()) {
-            return;
+    const passwords = {
+        create_role: document.getElementById('create-role-password').value,
+        manage_role: document.getElementById('manage-role-password').value,
+        create_user: document.getElementById('create-user-password').value,
+        manage_users: document.getElementById('manage-users-password').value
+    };
+
+    fetch('/admin/set_operation_passwords', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(passwords)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            operationPasswords = {
+                create_role: true,
+                manage_role: true,
+                create_user: true,
+                manage_users: true
+            };
+            bootstrap.Modal.getInstance(document.getElementById('setPasswordsModal')).hide();
+            showAlert('success', 'Operation passwords set successfully');
+        } else {
+            showAlert('error', data.message || 'Failed to set operation passwords');
         }
-
-        const passwords = {
-            create_role: document.getElementById('create-role-password').value,
-            manage_role: document.getElementById('manage-role-password').value,
-            create_user: document.getElementById('create-user-password').value,
-            manage_users: document.getElementById('manage-users-password').value
-        };
-
-        fetchWithToken('/admin/set_operation_passwords', {
-            method: 'POST',
-            body: JSON.stringify(passwords)
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    bootstrap.Modal.getInstance(document.getElementById('setPasswordsModal')).hide();
-                    showAlert('success', 'Operation passwords set successfully');
-                } else {
-                    showAlert('error', data.message || 'Failed to set operation passwords');
-                }
-            });
-    }
+    });
+}
 </script>
 
 {% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Application Logs</h1>
+    <div id="logContainer"></div>
+    <button id="loadMoreLogs" class="btn btn-primary mt-3">Load More Logs</button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let offset = 0;
+const limit = 50;
+
+function getLogLevelClass(level) {
+    switch(level.toUpperCase()) {
+        case 'INFO':
+            return 'text-success';
+        case 'ERROR':
+            return 'text-danger';
+        default:
+            return '';
+    }
+}
+
+function createLogCard(log) {
+    const card = document.createElement('div');
+    card.className = 'card mb-3';
+    const logLevelClass = getLogLevelClass(log.level);
+    card.innerHTML = `
+        <div class="card-header ${logLevelClass}" data-bs-toggle="collapse" data-bs-target="#log${log.id}" aria-expanded="false">
+            <div class="d-flex justify-content-between align-items-center">
+                <span>${log.timestamp} - ${log.level}</span>
+                <button class="btn btn-sm btn-outline-secondary">&#9660;</button>
+            </div>
+        </div>
+        <div id="log${log.id}" class="collapse">
+            <div class="card-body">
+                <pre class="mb-0">${log.message}</pre>
+            </div>
+        </div>
+    `;
+    return card;
+}
+
+function loadLogs() {
+    fetch(`/api/logs?offset=${offset}&limit=${limit}`)
+        .then(response => response.json())
+        .then(data => {
+            const logContainer = document.getElementById('logContainer');
+            data.logs.forEach(log => {
+                logContainer.appendChild(createLogCard(log));
+            });
+            offset += data.logs.length;
+            if (data.logs.length < limit) {
+                document.getElementById('loadMoreLogs').style.display = 'none';
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+document.getElementById('loadMoreLogs').addEventListener('click', loadLogs);
+
+document.addEventListener('click', function(e) {
+    if (e.target && e.target.closest('.card-header')) {
+        const button = e.target.closest('.card-header').querySelector('button');
+        button.innerHTML = button.innerHTML === '&#9660;' ? '&#9650;' : '&#9660;';
+    }
+});
+
+// Initial load
+loadLogs();
+</script>
+{% endblock %}
