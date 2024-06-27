@@ -745,7 +745,7 @@ def dashboard():
     else:
         # If it's a web request, render the dashboard template
         return render_template('dashboard.html', username=user['username'], role=user['role'],access_token=access_token,refresh_token=refresh_token)
-
+cpu = psutil.cpu_percent(interval=0.5)
 @app.route('/admin/system_stats')
 # @login_required
 @jwt_required()
@@ -761,7 +761,7 @@ def system_stats():
         timestamps.append(current_time)
         
         # CPU Usage
-        cpu = psutil.cpu_percent()
+        cpu = psutil.cpu_percent(interval=0.5)
         cpu_usage = {
             "Used": cpu,
             "Free": 100 - cpu

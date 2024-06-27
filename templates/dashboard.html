@@ -167,10 +167,87 @@
                 document.getElementById('username').textContent = data.username;
                 if (data.role === 'admin') {
                     document.getElementById('admin-dashboard').style.display = 'block';
+                    setInterval(fetchSystemStats, 10000);
+                    fetchSystemStats();
                 }
+            })
+            .catch(error => {
+                console.error('Error loading dashboard data:', error);
+            });
+    }
+    function fetchSystemStats() {
+        fetchWithT('/admin/system_stats')
+            .then(response => response.json())
+            .then(data => {
+                updateSystemStats(data);
+            })
+            .catch(error => {
+                console.error('Error fetching system stats:', error);
             });
     }
 
-    loadDashboardData();
+    function updateSystemStats(data) {
+        const formattedTimestamps = data.timestamps.map(timestamp =>
+            new Date(timestamp * 1000).toLocaleTimeString()
+        );
+
+        const cpuTrace = {
+            labels: Object.keys(data.cpu_usage),
+            values: Object.values(data.cpu_usage),
+            type: 'pie',
+            name: 'CPU Usage'
+        };
+        console.log(data.cpu_usage);
+        const cpuLayout = {
+            title: 'CPU Usage'
+        };
+        Plotly.newPlot('cpu-usage', [cpuTrace], cpuLayout);
+
+        const memoryTrace = {
+            labels: Object.keys(data.memory_usage),
+            values: Object.values(data.memory_usage),
+            type: 'pie',
+            name: 'Memory Usage'
+        };
+        const memoryLayout = {
+            title: 'Memory Usage'
+        };
+        Plotly.newPlot('memory-usage', [memoryTrace], memoryLayout);
+
+        const diskTrace = {
+            labels: Object.keys(data.disk_usage),
+            values: Object.values(data.disk_usage),
+            type: 'pie',
+            name: 'Disk Usage'
+        };
+        const diskLayout = {
+            title: 'Disk Usage'
+        };
+        Plotly.newPlot('disk-usage', [diskTrace], diskLayout);
+
+        if (!networkChart) {
+            const networkTrace = {
+                x: formattedTimestamps,
+                y: data.network_usage,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Network Usage'
+            };
+            const networkLayout = {
+                title: 'Network Usage',
+                yaxis: { title: 'MB' }
+            };
+            networkChart = Plotly.newPlot('network-usage', [networkTrace], networkLayout);
+        } else {
+            Plotly.update('network-usage', {
+                x: [formattedTimestamps],
+                y: [data.network_usage]
+            });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadDashboardData);
+    // loadDashboardData();
 </script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 {% endblock %}
