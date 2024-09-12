@@ -18,7 +18,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h3>System Stats</h3>
+                    <h3 style="font-weight: bold;">System Stats</h3>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -129,12 +129,40 @@
         }
     }
 
+    // function logout() {
+    //     localStorage.removeItem('access_token_cookie');
+    //     localStorage.removeItem('refresh_token_cookie');
+    //     window.location.href = '/logout';
+    // }
     function logout() {
-        localStorage.removeItem('access_token_cookie');
-        localStorage.removeItem('refresh_token_cookie');
-        window.location.href = '/logout';
+    // Clear localStorage
+    localStorage.removeItem('access_token_cookie');
+    localStorage.removeItem('refresh_token_cookie');
+
+    // Clear sessionStorage
+    sessionStorage.clear();
+
+    // Clear all cookies
+    document.cookie.split(";").forEach(function(c) { 
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+    });
+
+    // Clear application cache if supported by the browser
+    if (window.applicationCache) {
+        window.applicationCache.abort();
     }
 
+    // Clear any other client-side storage mechanisms
+    if (window.caches) {
+        caches.keys().then(function(names) {
+            for (let name of names)
+                caches.delete(name);
+        });
+    }
+
+    // Redirect to logout page
+    window.location.href = '/login';
+}
     function updateServerActivity() {
         fetchWithT('/update_activity', { method: 'POST' });
     }
@@ -248,6 +276,49 @@
 
     document.addEventListener('DOMContentLoaded', loadDashboardData);
     // loadDashboardData();
+    
+
+const url =
+    'https://api.openweathermap.org/data/2.5/weather';
+const apiKey =
+    'f00c38e0279b7bc85480c3fe775d518c';
+ 
+$(document).ready(function () {
+    weatherFn('Pune');
+});
+ 
+async function weatherFn(cName) {
+    const temp =
+        `${url}?q=${cName}&appid=${apiKey}&units=metric`;
+    try {
+        const res = await fetch(temp);
+        const data = await res.json();
+        if (res.ok) {
+            weatherShowFn(data);
+        } else {
+            alert('City not found. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error fetching weather data:', error);
+    }
+}
+ 
+function weatherShowFn(data) {
+    $('#city-name').text(data.name);
+    $('#date').text(moment().
+        format('MMMM Do YYYY, h:mm:ss a'));
+    $('#temperature').
+        html(`${data.main.temp}°C`);
+    $('#description').
+        text(data.weather[0].description);
+    $('#wind-speed').
+        html(`Wind Speed: ${data.wind.speed} m/s`);
+    $('#weather-icon').
+        attr('src',
+            `...`);
+    $('#weather-info').fadeIn();
+}
+
 </script>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 {% endblock %}

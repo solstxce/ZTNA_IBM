@@ -1,0 +1,52 @@
+.loginForm, .RegisterForm{
+    align-items: center;
+    justify-content: center;
+    /* display: flex; */
+
+}
+.form-control,.fd {
+    align-items: center;
+    width: 500px;
+    height: 60px;
+    border-radius: 30px;
+    background-color: #090c10; 
+    color: #f0f6fc;
+    -webkit-transition: ease-in 0.15s;
+    transition: ease-in 0.15s;
+    border-color: #2e2e2e;
+    outline: none;
+    margin: auto;
+    /* padding-top: 10px; */
+    /* width: max-content;  */
+
+}
+.fd{
+    margin-top: 50px;
+}
+.bt {
+    align-items: center;
+    justify-content: center;
+    margin-left: 32%;
+    width: 400px;
+    height: 50px;
+    background-color: #1d9e4c;
+}
+.secret::before{
+    display: none;
+}
+.secret::after{
+    margin-bottom: 50px;
+}
+.form-control::placeholder{
+    color: lightgrey
+}
+.form-control:focus{
+    outline: none;
+    box-shadow: none;
+    /* box-shadow: #7ce8a4; */
+    border-color: #1d9e4c;
+    border-width: 2px;
+    background-color: #131a22; 
+    color: #f0f6fc;
+
+}
