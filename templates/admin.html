@@ -1,202 +1,400 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+    /* Admin Dashboard Layout */
+    .admin-container {
+        padding: 2rem;
+        background: linear-gradient(135deg, #1a1f25 0%, #17212b 100%);
+        border-radius: 20px;
+        margin: 20px;
+        box-shadow: 0 8px 32px rgba(0, 123, 255, 0.1);
+    }
 
-<h1>Admin Dashboard</h1>
+    .admin-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
 
-<div id="alert-container"></div>
+    .admin-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(45deg, #0d6efd, #0dcaf0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+    }
 
-<div class="row mb-4">
-    <!-- Create User Card -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h2>Create New User</h2>
+    /* Card Styling */
+    .card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin-bottom: 1.5rem;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 123, 255, 0.2);
+    }
+
+    .card-header {
+        background: rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px 15px 0 0 !important;
+        padding: 1.25rem;
+    }
+
+    .card-header h2 {
+        font-size: 1.5rem;
+        margin: 0;
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    /* Form Controls */
+    .form-control, .form-select {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        color: #fff;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, #0d6efd, #0dcaf0);
+        border: none;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(13, 110, 253, 0.3);
+    }
+
+    .btn-warning {
+        background: linear-gradient(45deg, #ffc107, #ff9800);
+        border: none;
+        color: #fff;
+    }
+
+    .btn-danger {
+        background: linear-gradient(45deg, #dc3545, #ff4444);
+        border: none;
+    }
+
+    /* List Groups */
+    .list-group {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .list-group-item {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #fff;
+        transition: all 0.3s ease;
+    }
+
+    .list-group-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateX(5px);
+    }
+
+    /* Search Input */
+    .search-container {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+
+    .search-container .form-control {
+        padding-left: 2.5rem;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Alerts */
+    .alert {
+        border-radius: 10px;
+        border: none;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateY(-20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    /* Modal Styling */
+    .modal-content {
+        background: linear-gradient(135deg, #1a1f25 0%, #17212b 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+    }
+
+    .modal-header {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 1.5rem;
+    }
+
+    .modal-footer {
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 1.5rem;
+    }
+
+    /* User Details Section */
+    #user-details {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .form-check-input {
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .form-check-input:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+</style>
+
+<!-- Wrap the entire content in admin-container -->
+<div class="admin-container">
+    <div class="admin-header">
+        <h1><i class="fas fa-shield-alt me-2"></i>Admin Dashboard</h1>
+    </div>
+
+    <div id="alert-container"></div>
+
+    <div class="row mb-4">
+        <!-- Create User Card -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Create New User</h2>
+                </div>
+                <div class="card-body">
+                    <form id="create-user-form">
+                        <div class="mb-3 row">
+                            <div class="col-md-6">
+                                <input type="text" name="username" id="username" required placeholder="Username"
+                                    class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <input type="password" name="password" id="new-user-password" required
+                                    placeholder="Password" class="form-control">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <select name="role" id="new-user-role" required class="form-control">
+                                <!-- Roles will be populated dynamically -->
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="showConfirmModal('create_user')">Create
+                            User</button>
+                    </form>
+                </div>
             </div>
-            <div class="card-body">
-                <form id="create-user-form">
-                    <div class="mb-3 row">
-                        <div class="col-md-6">
-                            <input type="text" name="username" id="username" required placeholder="Username"
+        </div>
+
+        <!-- Create New Role Card -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Create New Role</h2>
+                </div>
+                <div class="card-body">
+                    <form id="create-role-form">
+                        <div class="mb-3">
+                            <input type="text" name="new_role" id="new-role" required placeholder="New Role Name"
                                 class="form-control">
                         </div>
-                        <div class="col-md-6">
-                            <input type="password" name="password" id="new-user-password" required
-                                placeholder="Password" class="form-control">
+                        <button type="button" class="btn btn-primary" onclick="showConfirmModal('create_role')">Create
+                            Role</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <!-- Manage Roles Card -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Manage Roles</h2>
+                </div>
+                <div class="card-body">
+                    <button type="button" class="btn btn-warning mb-3" onclick="showConfirmModal('purge_roles')">Purge
+                        Duplicate Roles</button>
+                    <div id="role-list" class="list-group">
+                        <!-- Roles will be populated dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Users Card -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Manage Users</h2>
+                </div>
+                <div class="card-body">
+                    <div class="search-container">
+                        <input type="text" id="user-search" class="form-control mb-3" placeholder="Search users...">
+                        <div class="search-icon">
+                            <i class="fas fa-search"></i>
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <select name="role" id="new-user-role" required class="form-control">
-                            <!-- Roles will be populated dynamically -->
-                        </select>
+                    <div style="max-height: 150px; margin-bottom: 10px; overflow:scroll; -webkit-overflow-scrolling: touch;"
+                        id="user-list" class="list-group mb-3"></div>
+                    <div id="user-details" class="d-none">
+                        <strong>
+                            <h3 style="font-weight: bold;" id="selected-username"></h3>
+                        </strong>
+                        <p style="font-weight: bold;">Current Role: <span style="font-weight: normal;"
+                                id="current-role"></span></p>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="action" id="change-role" value="role">
+                            <label class="form-check-label" for="change-role">
+                                Change Role
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="action" id="change-password"
+                                value="password">
+                            <label class="form-check-label" for="change-password">
+                                Change Password
+                            </label>
+                        </div>
+                        <div id="role-selection" class="mt-3 d-none">
+                            <select id="new-role-list" class="form-select">
+                                <!-- Roles will be populated dynamically -->
+                            </select>
+                        </div>
+                        <div id="password-change" class="mt-3 d-none">
+                            <input type="password" id="new-password" class="form-control" placeholder="New Password">
+                        </div>
+                        <button id="confirm-change" class="btn btn-primary mt-3">Confirm Change</button>
                     </div>
-                    <button type="button" class="btn btn-primary" onclick="showConfirmModal('create_user')">Create
-                        User</button>
-                </form>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Create New Role Card -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h2>Create New Role</h2>
-            </div>
-            <div class="card-body">
-                <form id="create-role-form">
-                    <div class="mb-3">
-                        <input type="text" name="new_role" id="new-role" required placeholder="New Role Name"
-                            class="form-control">
-                    </div>
-                    <button type="button" class="btn btn-primary" onclick="showConfirmModal('create_role')">Create
-                        Role</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row mb-4">
-    <!-- Manage Roles Card -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h2>Manage Roles</h2>
-            </div>
-            <div class="card-body">
-                <button type="button" class="btn btn-warning mb-3" onclick="showConfirmModal('purge_roles')">Purge
-                    Duplicate Roles</button>
-                <div id="role-list" class="list-group">
-                    <!-- Roles will be populated dynamically -->
+    <!-- Confirmation Modal -->
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmModalLabel">Confirm Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Please enter your admin password to confirm this action:</p>
+                    <input type="password" id="admin-password" class="form-control" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirm-action">Confirm</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Manage Users Card -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h2>Manage Users</h2>
-            </div>
-            <div class="card-body">
-                <div class="input-group mb-3">
-                    <input type="text" id="user-search" class="form-control mb-3" placeholder="Search users...">
-                    <div class="input-group-prepend">
-                        <button class="btn btn-outline-success" type="button">Search 🔍</button>
-                    </div>
+    <!-- QR Code Modal -->
+    <div id="qr-code-modal" class="modal fade" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">QR Code</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div style="max-height: 150px; margin-bottom: 10px; overflow:scroll; -webkit-overflow-scrolling: touch;"
-                    id="user-list" class="list-group mb-3"></div>
-                <div id="user-details" class="d-none">
-                    <strong>
-                        <h3 style="font-weight: bold;" id="selected-username"></h3>
-                    </strong>
-                    <p style="font-weight: bold;">Current Role: <span style="font-weight: normal;"
-                            id="current-role"></span></p>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="action" id="change-role" value="role">
-                        <label class="form-check-label" for="change-role">
-                            Change Role
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="action" id="change-password"
-                            value="password">
-                        <label class="form-check-label" for="change-password">
-                            Change Password
-                        </label>
-                    </div>
-                    <div id="role-selection" class="mt-3 d-none">
-                        <select id="new-role-list" class="form-select">
-                            <!-- Roles will be populated dynamically -->
-                        </select>
-                    </div>
-                    <div id="password-change" class="mt-3 d-none">
-                        <input type="password" id="new-password" class="form-control" placeholder="New Password">
-                    </div>
-                    <button id="confirm-change" class="btn btn-primary mt-3">Confirm Change</button>
+                <div class="modal-body text-center">
+                    <div id="qr-code-container"></div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Confirmation Modal -->
-<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="confirmModalLabel">Confirm Action</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Please enter your admin password to confirm this action:</p>
-                <input type="password" id="admin-password" class="form-control" required>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="confirm-action">Confirm</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- QR Code Modal -->
-<div id="qr-code-modal" class="modal fade" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">QR Code</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body text-center">
-                <div id="qr-code-container"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Set Operation Passwords Modal -->
-<div class="modal fade" id="setPasswordsModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-    aria-labelledby="setPasswordsModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="setPasswordsModalLabel">Set Operation Passwords</h5>
-            </div>
-            <div class="modal-body">
-                <p>Please set unique passwords for each operation. Each password must:</p>
-                <ul>
-                    <li>Be at least 12 characters long</li>
-                    <li>Include at least one uppercase letter</li>
-                    <li>Include at least one lowercase letter</li>
-                    <li>Include at least one number</li>
-                    <li>Include at least one special character (@$!%*?&)</li>
-                    <li>Be different from your admin password and other operation passwords</li>
-                </ul>
-                <form id="operation-passwords-form">
-                    <div class="mb-3">
-                        <label for="create-role-password" class="form-label">Create Role Password</label>
-                        <input type="password" class="form-control" id="create-role-password" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="manage-role-password" class="form-label">Manage Role Password</label>
-                        <input type="password" class="form-control" id="manage-role-password" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="create-user-password" class="form-label">Create User Password</label>
-                        <input type="password" class="form-control" id="create-user-password" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="manage-users-password" class="form-label">Manage Users Password</label>
-                        <input type="password" class="form-control" id="manage-users-password" required>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="setOperationPasswords()">Set Passwords</button>
+    <!-- Set Operation Passwords Modal -->
+    <div class="modal fade" id="setPasswordsModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+        aria-labelledby="setPasswordsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="setPasswordsModalLabel">Set Operation Passwords</h5>
+                </div>
+                <div class="modal-body">
+                    <p>Please set unique passwords for each operation. Each password must:</p>
+                    <ul>
+                        <li>Be at least 12 characters long</li>
+                        <li>Include at least one uppercase letter</li>
+                        <li>Include at least one lowercase letter</li>
+                        <li>Include at least one number</li>
+                        <li>Include at least one special character (@$!%*?&)</li>
+                        <li>Be different from your admin password and other operation passwords</li>
+                    </ul>
+                    <form id="operation-passwords-form">
+                        <div class="mb-3">
+                            <label for="create-role-password" class="form-label">Create Role Password</label>
+                            <input type="password" class="form-control" id="create-role-password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="manage-role-password" class="form-label">Manage Role Password</label>
+                            <input type="password" class="form-control" id="manage-role-password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="create-user-password" class="form-label">Create User Password</label>
+                            <input type="password" class="form-control" id="create-user-password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="manage-users-password" class="form-label">Manage Users Password</label>
+                            <input type="password" class="form-control" id="manage-users-password" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="setOperationPasswords()">Set Passwords</button>
+                </div>
             </div>
         </div>
     </div>

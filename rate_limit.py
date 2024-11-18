@@ -22,7 +22,7 @@ init()
 import logging
 from logging.handlers import RotatingFileHandler
 import os
-
+#
 def setup_logging(app):
     if not os.path.exists('logs'):
         os.mkdir('logs')

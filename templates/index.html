@@ -1,6 +1,206 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Welcome to Blazor ZTI 🔥</h1>
-<p>Register or Login to continue further!</p>
+<style>
+    .hero-section {
+        min-height: 85vh;
+        position: relative;
+        overflow: hidden;
+        padding: 4rem 0;
+        background: linear-gradient(135deg, rgba(13, 17, 23, 0.95) 0%, rgba(25, 32, 45, 0.95) 100%);
+        border-radius: 20px;
+        margin: 0 10px;
+    }
+
+    .hero-content {
+        animation: slideUp 0.8s ease-out;
+    }
+
+    .hero-image {
+        animation: fadeInRight 1s ease-out;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 123, 255, 0.2);
+        transition: transform 0.3s ease;
+    }
+
+    .hero-image:hover {
+        transform: translateY(-10px);
+    }
+
+    .display-4 {
+        font-size: 3.5rem;
+        font-weight: 800;
+        background: linear-gradient(45deg, #0d6efd, #0dcaf0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1.5rem;
+    }
+
+    .lead {
+        font-size: 1.25rem;
+        line-height: 1.8;
+        color: #a8b2d1;
+        margin-bottom: 2rem;
+    }
+
+    .hero-buttons {
+        animation: fadeIn 1s ease-out 0.5s;
+        animation-fill-mode: both;
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, #0d6efd, #0dcaf0);
+        border: none;
+        padding: 12px 30px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(13, 110, 253, 0.3);
+    }
+
+    .btn-outline-light {
+        border-width: 2px;
+        padding: 12px 30px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-light:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .features-section {
+        padding: 4rem 0;
+        animation: fadeIn 1s ease-out 0.8s;
+        animation-fill-mode: both;
+    }
+
+    .card {
+        border-radius: 15px;
+        background: linear-gradient(145deg, #1a1f25, #17212b);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+        height: 100%;
+        padding: 1.5rem;
+    }
+
+    .card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 10px 30px rgba(0, 123, 255, 0.2);
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        background: linear-gradient(45deg, #0d6efd, #0dcaf0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1.5rem;
+    }
+
+    .card h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #fff;
+    }
+
+    .card p {
+        color: #a8b2d1;
+        line-height: 1.6;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeInRight {
+        from {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* Floating animation for cards */
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+
+    .floating {
+        animation: float 3s ease-in-out infinite;
+    }
+</style>
+
+<div class="hero-section row align-items-center">
+    <div class="col-lg-6 hero-content">
+        <h1 class="display-4">Zero Trust Security Dashboard</h1>
+        <p class="lead">Experience next-generation security with our comprehensive Zero Trust Implementation platform. Monitor, manage, and secure your network with confidence.</p>
+        <div class="hero-buttons">
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-3">
+                <i class="fas fa-rocket me-2"></i>Get Started
+            </a>
+            <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+            </a>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <img src="{{ url_for('static', filename='images/zero-trust.jpg') }}" alt="Zero Trust Security" class="img-fluid hero-image floating">
+    </div>
+</div>
+
+<div class="features-section">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-shield-alt feature-icon"></i>
+                    <h3>Identity Verification</h3>
+                    <p>Continuous authentication and authorization for every user, device, and connection attempt.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-network-wired feature-icon"></i>
+                    <h3>Network Segmentation</h3>
+                    <p>Micro-segmentation and least-privilege access control for enhanced security.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line feature-icon"></i>
+                    <h3>Real-time Monitoring</h3>
+                    <p>Advanced analytics and threat detection with comprehensive visibility.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

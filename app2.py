@@ -12,8 +12,8 @@ from PIL import Image, ImageDraw
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Change this to a secure random key
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=2)
-
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=10)
+#
 # MongoDB setup
 client = MongoClient('mongodb://localhost:27017/')
 db = client['rbac_db']
@@ -348,95 +348,6 @@ def admin():
     return jsonify({'users': users, 'roles': roles})
 
 
-# @app.route('/admin', methods=['GET', 'POST'])
-# @login_required
-# @role_required('admin')
-# def admin():
-#     search_query = request.args.get('search', '')
-
-#     if request.method == 'POST':
-#         if request.is_json:
-#             data = request.get_json()
-#             action = data.get('action')
-#         else:
-#             data = request.form
-#             action = data.get('action')
-
-#         if action == 'create_user':
-#             username = data.get('username')
-#             password = data.get('password')
-#             role = data.get('role')
-#             admin_password = data.get('admin_password')
-
-#             # Verify admin password
-#             admin_user = db.users.find_one({'_id': ObjectId(session['user_id'])})
-#             if not check_password_hash(admin_user['password'], admin_password):
-#                 return jsonify({'status': 'error', 'message': 'Invalid admin password.'})
-
-#             # Check if username already exists
-#             existing_user = db.users.find_one({'username': username})
-#             if existing_user:
-#                 return jsonify({'status': 'error', 'message': 'Username already exists. Please choose a different username.'})
-            
-#             totp_secret = pyotp.random_base32()
-#             hashed_password = generate_password_hash(password)
-#             try:
-#                 db.users.insert_one({
-#                     'username': username,
-#                     'password': hashed_password,
-#                     'role': role,
-#                     'totp_secret': totp_secret
-#                 })
-#                 return jsonify({'status': 'success', 'message': 'New user created successfully'})
-#             except Exception as e:
-#                 return jsonify({'status': 'error', 'message': f'An error occurred while creating the user: {str(e)}'})
-
-#         elif action == 'purge_roles':
-#             admin_password = data.get('admin_password')
-            
-#             # Verify admin password
-#             admin_user = db.users.find_one({'_id': ObjectId(session['user_id'])})
-#             if not check_password_hash(admin_user['password'], admin_password):
-#                 return jsonify({'status': 'error', 'message': 'Invalid admin password.'})
-
-#             # Purge duplicate roles
-#             roles = db.roles.find()
-#             unique_roles = set()
-#             for role in roles:
-#                 if role['name'] in unique_roles:
-#                     db.roles.delete_one({'_id': role['_id']})
-#                 else:
-#                     unique_roles.add(role['name'])
-#             return jsonify({'status': 'success', 'message': 'Duplicate roles purged successfully'})
-
-#         elif action == 'create_role':
-#             new_role = data.get('new_role')
-#             admin_password = data.get('admin_password')
-            
-#             # Verify admin password
-#             admin_user = db.users.find_one({'_id': ObjectId(session['user_id'])})
-#             if not check_password_hash(admin_user['password'], admin_password):
-#                 return jsonify({'status': 'error', 'message': 'Invalid admin password.'})
-
-#             # Check if the role already exists
-#             existing_role = db.roles.find_one({'name': new_role})
-#             if existing_role:
-#                 return jsonify({'status': 'error', 'message': 'Role already exists.'})
-
-#             try:
-#                 db.roles.insert_one({'name': new_role})
-#                 return jsonify({'status': 'success', 'message': 'New role created successfully'})
-#             except Exception as e:
-#                 return jsonify({'status': 'error', 'message': f'An error occurred: {str(e)}'})
-
-#     if search_query:
-#         users = list(db.users.find({'username': {'$regex': search_query, '$options': 'i'}}, {'_id': 1, 'username': 1, 'role': 1}))
-#     else:
-#         users = list(db.users.find({}, {'_id': 1, 'username': 1, 'role': 1}))
-    
-#     roles = list(db.roles.find())
-#     return render_template('admin.html', users=users, roles=roles, search_query=search_query)
-
 @app.route('/admin/change_role', methods=['POST'])
 @login_required
 @role_required('admin')
@@ -473,4 +384,4 @@ def create_role():
     return redirect(url_for('admin'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True,port=5000)

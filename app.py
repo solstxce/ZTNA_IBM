@@ -425,36 +425,68 @@ def generate_qr():
     return jsonify({'qr_code': img_str, 'totp_secret': totp_secret})
 
 @app.route('/generate_qr_for_user', methods=['POST'])
-@login_required
-@role_required('admin')
+@jwt_required()
 def generate_qr_for_user():
-    username = request.form['username']
-    user = db.users.find_one({'username': username})
-    
-    if user:
+    try:
+        # Get current user
+        current_user_id = get_jwt_identity()
+        user = db.users.find_one({'_id': ObjectId(current_user_id)})
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        # Generate TOTP URI
         totp_secret = user['totp_secret']
-        totp_uri = pyotp.totp.TOTP(totp_secret).provisioning_uri(name=username, issuer_name="ZTI_KARE")
-       
-        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+        totp_uri = pyotp.totp.TOTP(totp_secret).provisioning_uri(
+            name=user['username'], 
+            issuer_name="ZTI_KARE"
+        )
+        
+        # Create QR code
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
         qr.add_data(totp_uri)
         qr.make(fit=True)
-        img = qr.make_image(fill_color="black", back_color="white")
-       
-        img = img.convert("RGBA")
-        width, height = img.size
+        
+        # Create QR image with white background
+        qr_image = qr.make_image(fill_color="black", back_color="white")
+        
+        # Convert to RGBA for transparency support
+        qr_image = qr_image.convert("RGBA")
+        
+        # Add rounded corners
+        width, height = qr_image.size
         mask = Image.new('L', (width, height), 0)
         draw = ImageDraw.Draw(mask)
-        draw.rounded_rectangle((0, 0, width, height), radius=20, fill=255)
-        img.putalpha(mask)
-        img = img.resize((200, 200))
-       
+        radius = 20  # Corner radius
+        draw.rounded_rectangle([(0, 0), (width, height)], radius=radius, fill=255)
+        
+        # Apply mask
+        output = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+        output.paste(qr_image, mask=mask)
+        
+        # Convert to base64
         buffered = io.BytesIO()
-        img.save(buffered, format="PNG")
-        img_str = base64.b64encode(buffered.getvalue()).decode()
-
-        return jsonify({'qr_code': img_str})
-    else:
-        return jsonify({'error': 'User not found'}), 404
+        output.save(buffered, format="PNG")
+        qr_base64 = base64.b64encode(buffered.getvalue()).decode()
+        
+        app.logger.info(f"QR code generated successfully for user: {user['username']}")
+        return jsonify({
+            'status': 'success',
+            'qr_code': qr_base64,
+            'message': 'QR code generated successfully'
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error generating QR code: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Error generating QR code: {str(e)}'
+        }), 500
 
 # @app.route('/login', methods=['GET', 'POST'])
 # def login():
@@ -517,37 +549,18 @@ def generate_qr_for_user():
 #         username = request.form['username']
 #         password = request.form['password']
 #         totp_code = request.form['totp_code']
+#         
 #         user = db.users.find_one({'username': username})
 #         if user and check_password_hash(user['password'], password):
 #             totp = pyotp.TOTP(user['totp_secret'])
 #             if totp.verify(totp_code):
 #                 access_token = create_access_token(identity=str(user['_id']))
 #                 refresh_token = create_refresh_token(identity=str(user['_id']))
-#                 return jsonify(access_token=access_token, refresh_token=refresh_token), 200
-#             else:
-#                 return jsonify({"msg": "Invalid TOTP code"}), 401
-#         else:
-#             return jsonify({"msg": "Bad username or password"}), 401
-#     return render_template('login.html')
-
-# @app.route('/login', methods=['GET', 'POST'])
-# def login():
-#     if request.method == 'POST':
-#         username = request.form['username']
-#         password = request.form['password']
-#         totp_code = request.form['totp_code']
-        
-#         user = db.users.find_one({'username': username})
-#         if user and check_password_hash(user['password'], password):
-#             totp = pyotp.TOTP(user['totp_secret'])
-#             if totp.verify(totp_code):
-#                 access_token = create_access_token(identity=str(user['_id']))
-#                 refresh_token = create_refresh_token(identity=str(user['_id']))
-                
+#                 
 #                 resp = make_response(redirect(url_for('dashboard')))
 #                 resp.set_cookie('access_token_cookie', access_token, samesite='Lax')
 #                 resp.set_cookie('refresh_token_cookie', refresh_token, samesite='Lax' )
-                
+#                 
 #                 flash('Login successful', 'success')
 #                 return resp
 #             else:
@@ -849,7 +862,7 @@ def admin():
 
     # For GET requests, render the admin template
     return render_template('admin.html')
-
+#
 @app.route('/admin/manage_role', methods=['POST'])
 @jwt_required()
 @role_required('admin')
@@ -1119,6 +1132,27 @@ def reset_operation_password():
     
     return jsonify({'status': 'success', 'message': 'Operation password reset successfully'})
 
+@app.route('/check_totp_setup', methods=['GET'])
+@jwt_required()
+def check_totp_setup():
+    try:
+        current_user_id = get_jwt_identity()
+        user = db.users.find_one({'_id': ObjectId(current_user_id)})
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+            
+        has_totp = bool(user.get('totp_secret'))
+        return jsonify({
+            'status': 'success',
+            'has_totp': has_totp
+        })
+    except Exception as e:
+        app.logger.error(f"Error checking TOTP setup: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -2,7 +2,7 @@ import sqlite3
 from pymongo import MongoClient
 from werkzeug.security import generate_password_hash
 import pyotp
-
+#
 # SQLite connection
 sqlite_conn = sqlite3.connect('rbac.db')
 sqlite_conn.row_factory = sqlite3.Row

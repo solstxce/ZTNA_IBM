@@ -2,46 +2,200 @@
 
 {% block content %}
 <style>
+    /* Dashboard Layout */
+    .dashboard-container {
+        padding: 2rem;
+        background: linear-gradient(135deg, #1a1f25 0%, #17212b 100%);
+        border-radius: 20px;
+        margin: 20px;
+        box-shadow: 0 8px 32px rgba(0, 123, 255, 0.1);
+    }
+
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .welcome-text {
+        font-size: 2rem;
+        font-weight: 700;
+        background: linear-gradient(45deg, #0d6efd, #0dcaf0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* Cards Styling */
     .stats-card {
         height: 300px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        padding: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 123, 255, 0.2);
+    }
+
+    /* Weather Card */
+    .weather-card {
+        background: linear-gradient(145deg, #1e2329, #23292f);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-top: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 123, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .weather-card:hover {
+        transform: translateY(-5px);
+    }
+
+    /* QR Code Section */
+    .qr-section {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        padding: 2rem;
+        margin: 2rem 0;
+        text-align: center;
+    }
+
+    .qr-button {
+        background: linear-gradient(45deg, #0d6efd, #0dcaf0);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 10px;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .qr-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(13, 110, 253, 0.3);
+    }
+
+    /* Admin Dashboard */
+    .admin-stats {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-top: 2rem;
+    }
+
+    .admin-stats h3 {
+        color: #fff;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+    }
+
+    /* Plotly Charts Styling */
+    .js-plotly-plot {
+        border-radius: 15px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fadeInUp {
+        animation: fadeInUp 0.6s ease-out;
     }
 </style>
 
-<h1>Dashboard</h1>
-<p>Welcome, <span id="username"></span>!</p>
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1 class="welcome-text">Welcome, <span id="username"></span>!</h1>
+        <button class="qr-button" onclick="toggleQRCode()">
+            <i class="fas fa-qrcode me-2"></i>2FA Settings
+        </button>
+    </div>
 
-<div id="admin-dashboard" style="display: none;">
-    <h2><strong>Admin Dashboard</strong></h2>
+    <!-- User Dashboard -->
+    <div id="user-dashboard" style="display: none;" class="animate-fadeInUp">
+        <!-- QR Code Section -->
+        <div id="qrCodeContainer" class="qr-section" style="display: none;">
+            <img id="qrCodeImage" alt="TOTP QR Code" class="mb-3">
+            <p class="text-muted">Scan this QR code with your authenticator app</p>
+        </div>
 
-    <!-- System Stats Section -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h3 style="font-weight: bold;">System Stats</h3>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div id="cpu-usage" class="stats-card"></div>
-                        </div>
-                        <div class="col-md-6">
-                            <div id="memory-usage" class="stats-card"></div>
+        <!-- Weather Section -->
+        <div class="weather-card animate-fadeInUp">
+            <div class="weather-header">
+                <h3><i class="fas fa-cloud-sun"></i> Weather Information</h3>
+                <span class="location-badge">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span id="city-name">Virudhunagar</span>
+                </span>
+            </div>
+            <div class="weather-content">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="weather-main">
+                            <div class="temp-display">
+                                <span id="temperature">--</span>
+                                <span class="weather-description" id="description">--</span>
+                            </div>
+                            <div class="weather-details">
+                                <p><i class="fas fa-wind"></i> Wind: <span id="wind-speed">--</span></p>
+                                <p><i class="fas fa-tint"></i> Humidity: <span id="humidity">--</span>%</p>
+                            </div>
                         </div>
                     </div>
-                    <div class="row mt-4">
-                        <div class="col-md-6">
-                            <div id="disk-usage" class="stats-card"></div>
+                    <div class="col-md-6 text-center">
+                        <div class="weather-icon-container">
+                            <img id="weather-icon" src="" alt="Weather Icon">
                         </div>
-                        <div class="col-md-6">
-                            <div id="network-usage" class="stats-card"></div>
-                        </div>
+                        <div id="date" class="mt-2">--</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Admin Dashboard -->
+    <div id="admin-dashboard" style="display: none;" class="animate-fadeInUp">
+        <div class="admin-stats">
+            <h3><i class="fas fa-chart-line me-2"></i>System Statistics</h3>
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div id="cpu-usage" class="stats-card"></div>
+                </div>
+                <div class="col-md-6">
+                    <div id="memory-usage" class="stats-card"></div>
+                </div>
+                <div class="col-md-6">
+                    <div id="disk-usage" class="stats-card"></div>
+                </div>
+                <div class="col-md-6">
+                    <div id="network-usage" class="stats-card"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 
 <script>
     const accessT = '{{ access_token }}';
@@ -197,6 +351,19 @@
                     document.getElementById('admin-dashboard').style.display = 'block';
                     setInterval(fetchSystemStats, 10000);
                     fetchSystemStats();
+                } else {
+                    document.getElementById('user-dashboard').style.display = 'block';
+                    // Get user's location for weather
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(position => {
+                            getWeatherByCoords(position.coords.latitude, position.coords.longitude);
+                        }, error => {
+                            // Default to a location if geolocation fails
+                            weatherFn('Virudhunagar');
+                        });
+                    } else {
+                        weatherFn('Virudhunagar');
+                    }
                 }
             })
             .catch(error => {
@@ -274,8 +441,15 @@
         }
     }
 
-    document.addEventListener('DOMContentLoaded', loadDashboardData);
-    // loadDashboardData();
+    document.addEventListener('DOMContentLoaded', function() {
+        weatherFn('Virudhunagar');
+        
+        // Update weather every 5 minutes
+        setInterval(() => weatherFn('Virudhunagar'), 300000);
+        
+        // Load dashboard data
+        loadDashboardData();
+    });
     
 
 const url =
@@ -283,20 +457,23 @@ const url =
 const apiKey =
     'f00c38e0279b7bc85480c3fe775d518c';
  
-$(document).ready(function () {
-    weatherFn('Pune');
-});
- 
-async function weatherFn(cName) {
-    const temp =
-        `${url}?q=${cName}&appid=${apiKey}&units=metric`;
+async function weatherFn(cName = 'Virudhunagar') {
+    // Use Virudhunagar's exact coordinates
+    const temp = `${url}?lat=9.5786&lon=77.9591&appid=${apiKey}&units=metric`;
     try {
         const res = await fetch(temp);
         const data = await res.json();
         if (res.ok) {
             weatherShowFn(data);
         } else {
-            alert('City not found. Please try again.');
+            console.error('Weather data fetch failed:', data);
+            // Try with city name as fallback
+            const cityTemp = `${url}?q=${cName}&appid=${apiKey}&units=metric`;
+            const cityRes = await fetch(cityTemp);
+            const cityData = await cityRes.json();
+            if (cityRes.ok) {
+                weatherShowFn(cityData);
+            }
         }
     } catch (error) {
         console.error('Error fetching weather data:', error);
@@ -304,20 +481,114 @@ async function weatherFn(cName) {
 }
  
 function weatherShowFn(data) {
-    $('#city-name').text(data.name);
-    $('#date').text(moment().
-        format('MMMM Do YYYY, h:mm:ss a'));
-    $('#temperature').
-        html(`${data.main.temp}°C`);
-    $('#description').
-        text(data.weather[0].description);
-    $('#wind-speed').
-        html(`Wind Speed: ${data.wind.speed} m/s`);
-    $('#weather-icon').
-        attr('src',
-            `...`);
-    $('#weather-info').fadeIn();
+    document.getElementById('city-name').textContent = data.name;
+    document.getElementById('date').textContent = moment().format('dddd, MMMM Do YYYY');
+    document.getElementById('temperature').innerHTML = `${Math.round(data.main.temp)}°C`;
+    document.getElementById('description').textContent = data.weather[0].description;
+    document.getElementById('wind-speed').textContent = `${data.wind.speed} m/s`;
+    document.getElementById('humidity').textContent = data.main.humidity;
+    
+    // Update weather icon
+    const iconCode = data.weather[0].icon;
+    document.getElementById('weather-icon').src = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+    
+    // Add animation
+    document.querySelector('.weather-card').classList.add('animate__animated', 'animate__fadeIn');
 }
+
+function showQRCode() {
+    fetchWithT('/generate_qr_for_user', {
+        method: 'POST',
+        body: JSON.stringify({ username: document.getElementById('username').textContent }),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.qr_code) {
+            document.getElementById('qr-code-image').src = 'data:image/png;base64,' + data.qr_code;
+            document.getElementById('qr-code-container').style.display = 'block';
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function getWeatherByCoords(lat, lon) {
+    const url = `https://api.openweathermap.org/data/2.5/weather?lat=9.5680&lon=77.9624&appid=${apiKey}&units=metric`;
+    fetch(url)
+        .then(response => response.json())
+        .then(data => weatherShowFn(data))
+        .catch(error => {
+            console.error('Error:', error);
+            // Fallback to direct city name if coordinates fail
+            weatherFn('Virudhunagar');
+        });
+}
+
+let qrCodeVisible = false;
+
+function toggleQRCode() {
+    const container = document.getElementById('qrCodeContainer');
+    const button = document.querySelector('.qr-button');
+    
+    if (!qrCodeVisible) {
+        // Show QR code
+        fetchWithT('/generate_qr_for_user', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success' && data.qr_code) {
+                document.getElementById('qrCodeImage').src = 'data:image/png;base64,' + data.qr_code;
+                container.style.display = 'block';
+                button.innerHTML = '<i class="fas fa-times me-2"></i>Hide 2FA Settings';
+                qrCodeVisible = true;
+            } else {
+                alert('Error generating QR code: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error generating QR code. Please try again.');
+        });
+    } else {
+        // Hide QR code
+        container.style.display = 'none';
+        button.innerHTML = '<i class="fas fa-qrcode me-2"></i>2FA Settings';
+        qrCodeVisible = false;
+    }
+}
+
+// Helper function for fetch with token
+function fetchWithT(url, options = {}) {
+    const token = getCookie('csrf_access_token');
+    if (token) {
+        options.headers = {
+            ...options.headers,
+            'X-CSRF-TOKEN': token
+        };
+    }
+    return fetch(url, options);
+}
+
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+// Check TOTP setup on page load
+document.addEventListener('DOMContentLoaded', function() {
+        weatherFn('Virudhunagar');
+        weatherFn('Virudhunagar');
+        // Update weather every 5 minutes
+        setInterval(() => weatherFn('Virudhunagar'), 300000);
+    
+});
 
 </script>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
